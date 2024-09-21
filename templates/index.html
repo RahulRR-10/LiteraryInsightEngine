@@ -13,7 +13,7 @@
 
         <h2>Upload Text File</h2>
         <form id="uploadForm">
-            <input type="file" id="fileInput" accept=".txt">
+            <input type="file" id="fileInput" accept=".txt" required>
             <button type="button" class="utility-button" onclick="uploadFile()">Upload</button>
         </form>
 
@@ -25,13 +25,19 @@
                 <i class="fas fa-cloud" style="font-size: 48px; color: #4285F4;"></i>
                 <h2>Word Cloud</h2>
                 <p>Create a visual representation of word frequency.</p>
-                <button class="utility-button" onclick="generateWordCloud()" disabled>Generate Word Cloud</button>
+                <button class="utility-button" id="wordCloudButton" onclick="generateWordCloud()" disabled>Generate Word Cloud</button>
             </div>
             <div class="utility-card">
                 <i class="fas fa-chart-bar" style="font-size: 48px; color: #4285F4;"></i>
                 <h2>Word Frequencies</h2>
                 <p>View the frequency of each word in the text.</p>
-                <button class="utility-button" onclick="generateWordFrequencies()" disabled>Generate Word Frequencies</button>
+                <button class="utility-button" id="wordFrequenciesButton" onclick="generateWordFrequencies()" disabled>Generate Word Frequencies</button>
+            </div>
+            <div class="utility-card">
+                <i class="fas fa-map-marked-alt" style="font-size: 48px; color: #4285F4;"></i>
+                <h2>Geospatial Visualization</h2>
+                <p>Visualize location data on a map.</p>
+                <button class="utility-button" id="geospatialButton" onclick="generateGeospatial()" disabled>Generate Geospatial Visualization</button>
             </div>
         </div>
     </div>
@@ -39,7 +45,6 @@
     <script>
         let uploadedFileName = '';
 
-        // Load the uploaded file information when the page loads
         window.onload = function() {
             const storedFileName = localStorage.getItem('uploadedFileName');
             if (storedFileName) {
@@ -78,8 +83,9 @@
         }
 
         function enableUtilityButtons() {
-            const utilityButtons = document.querySelectorAll('.utility-button');
-            utilityButtons.forEach(button => button.disabled = false);
+            document.getElementById('wordCloudButton').disabled = false;
+            document.getElementById('wordFrequenciesButton').disabled = false;
+            document.getElementById('geospatialButton').disabled = false;
         }
 
         function generateWordCloud() {
@@ -103,6 +109,19 @@
                         window.location.href = `/result/word_frequencies?word_frequencies=${encodeURIComponent(JSON.stringify(data))}`;
                     } else {
                         alert('Word frequencies generation failed: ' + data.error);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function generateGeospatial() {
+            fetch('/generate_geospatial', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.map_url) {
+                        window.location.href = `/result/geospatial?map_url=${encodeURIComponent(data.map_url)}`;
+                    } else {
+                        alert('Geospatial visualization generation failed: ' + data.error);
                     }
                 })
                 .catch(error => console.error('Error:', error));
