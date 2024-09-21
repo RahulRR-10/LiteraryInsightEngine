@@ -115,17 +115,31 @@
         }
 
         function generateGeospatial() {
-            fetch('/generate_geospatial', { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.map_url) {
-                        window.location.href = `/result/geospatial?map_url=${encodeURIComponent(data.map_url)}`;
-                    } else {
-                        alert('Geospatial visualization generation failed: ' + data.error);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
+    fetch('/generate_geospatial', { method: 'POST' })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.error || 'Geospatial visualization generation failed');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Geospatial data:', data);  // Log the data received
+            if (data.map_filename) {
+                window.location.href = `/result/geospatial?map_filename=${encodeURIComponent(data.map_filename)}`;
+            } else {
+                alert('Geospatial visualization generation failed: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Geospatial visualization generation failed: ' + error.message);
+        });
+}
+
+
+
     </script>
 </body>
 </html>
