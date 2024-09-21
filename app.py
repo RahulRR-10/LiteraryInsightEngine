@@ -153,7 +153,12 @@ def word_frequencies_result():
     except json.JSONDecodeError:
         return "Invalid word frequencies format", 400
 
-    return render_template('frequency_results.html', word_frequencies=word_frequencies)
+    # Ensure word_frequencies is a valid dictionary
+    if not isinstance(word_frequencies, dict):
+        return "Invalid word frequencies format: Expected a dictionary", 400
+
+    return render_template('result_word_frequencies.html', word_frequencies=word_frequencies)
+
 
 @app.route('/result/word_cloud')
 def word_cloud_result():
@@ -161,7 +166,7 @@ def word_cloud_result():
     if not image_filename:
         return "Missing image filename", 400
 
-    return render_template('results.html', image_filename=image_filename)
+    return render_template('result_word_cloud.html', image_filename=image_filename)
 
 if __name__ == "__main__":
     app.run(debug=True)

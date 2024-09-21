@@ -42,7 +42,6 @@
             }
         };
 
-        // Utility button event handlers
         document.getElementById('generateWordCloud').onclick = function() {
             handleUtility('generate_wordcloud');
         };
@@ -52,30 +51,31 @@
         };
 
         async function handleUtility(utility) {
-            if (!window.uploadedFilename) {
-                alert("Please upload a file first.");
-                return;
-            }
-            const response = await fetch(`/${utility}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ filename: window.uploadedFilename }),
-            });
+    if (!window.uploadedFilename) {
+        alert("Please upload a file first.");
+        return;
+    }
+    const response = await fetch(`/${utility}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filename: window.uploadedFilename }),
+    });
 
-            const result = await response.json();
-            if (response.ok) {
-                if (utility === 'generate_wordcloud' && result.image_filename) {
-                    window.location.href = `/result/word_cloud?image_filename=${result.image_filename}`;
-                } else if (utility === 'generate_word_frequencies') {
-                    const wordFrequenciesStr = JSON.stringify(result);
-                    window.location.href = `/result/word_frequencies?word_frequencies=${encodeURIComponent(wordFrequenciesStr)}`;
-                }
-            } else {
-                alert(result.error || "An unknown error occurred.");
-            }
+    const result = await response.json();
+    if (response.ok) {
+        if (utility === 'generate_wordcloud' && result.image_filename) {
+            window.location.href = `/result/word_cloud?image_filename=${result.image_filename}`;
+        } else if (utility === 'generate_word_frequencies') {
+            const wordFrequenciesStr = JSON.stringify(result);
+            window.location.href = `/result/word_frequencies?word_frequencies=${encodeURIComponent(wordFrequenciesStr)}`;
         }
+    } else {
+        alert(result.error || "An unknown error occurred.");
+    }
+}
+
     </script>
 </body>
 </html>
