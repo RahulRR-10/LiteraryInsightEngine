@@ -33,12 +33,6 @@
                 <p>View the frequency of each word in the text.</p>
                 <button class="utility-button" onclick="generateWordFrequencies()" disabled>Generate Word Frequencies</button>
             </div>
-            <div class="utility-card">
-                <i class="fas fa-layer-group" style="font-size: 48px; color: #4285F4;"></i>
-                <h2>Topic Modeling</h2>
-                <p>Discover hidden topics in the text using LDA.</p>
-                <button class="utility-button" onclick="generateTopicModeling()" disabled>Generate Topic Model</button>
-            </div>
         </div>
     </div>
 
@@ -77,85 +71,41 @@
                         alert('Upload failed: ' + data.error);
                     }
                 })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Upload failed. Please try again.');
-                });
+                .catch(error => console.error('Error:', error));
             } else {
                 alert('Please select a file to upload.');
             }
         }
 
         function enableUtilityButtons() {
-            const buttons = document.querySelectorAll('.utility-button');
-            buttons.forEach(button => button.disabled = false);
+            const utilityButtons = document.querySelectorAll('.utility-button');
+            utilityButtons.forEach(button => button.disabled = false);
         }
 
         function generateWordCloud() {
-            fetch('/generate_wordcloud', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ filename: uploadedFileName })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert('Error generating word cloud: ' + data.error);
-                } else {
-                    window.location.href = `/result/word_cloud?image_filename=${data.image_filename}`;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Failed to generate word cloud. Please try again.');
-            });
+            fetch('/generate_wordcloud', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.image_filename) {
+                        window.location.href = `/result/word_cloud?image_filename=${data.image_filename}`;
+                    } else {
+                        alert('Word cloud generation failed: ' + data.error);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
         }
 
         function generateWordFrequencies() {
-            fetch('/generate_word_frequencies', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ filename: uploadedFileName })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert('Error generating word frequencies: ' + data.error);
-                } else {
-                    const wordFrequenciesStr = encodeURIComponent(JSON.stringify(data));
-                    window.location.href = `/result/word_frequencies?word_frequencies=${wordFrequenciesStr}`;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Failed to generate word frequencies. Please try again.');
-            });
-        }
-
-        function generateTopicModeling() {
-            fetch('/generate_topic_modeling', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ filename: uploadedFileName })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert('Error generating topic modeling: ' + data.error);
-                } else {
-                    window.location.href = data.redirect;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Failed to generate topic modeling. Please try again.');
-            });
+            fetch('/generate_word_frequencies', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        window.location.href = `/result/word_frequencies?word_frequencies=${encodeURIComponent(JSON.stringify(data))}`;
+                    } else {
+                        alert('Word frequencies generation failed: ' + data.error);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
         }
     </script>
 </body>
