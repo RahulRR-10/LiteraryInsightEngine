@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Word Cloud Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Word Cloud Result</h1>
+        <div class="image-container">
+            <img src="{{ url_for('static', filename='wordclouds/' + image_filename) }}" alt="Word Cloud">
+        </div>
+        <div class="navigation-container">
+            <a href="{{ url_for('index') }}" class="back-button">Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

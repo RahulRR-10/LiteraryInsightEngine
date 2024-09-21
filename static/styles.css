@@ -1,0 +1,93 @@
+/* General Body Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4; /* Light gray background */
+    margin: 0; /* Remove default margin */
+    padding: 20px; /* Padding around the body */
+}
+
+/* Main Container Styles */
+.container {
+    max-width: 1000px; /* Increase max width for a larger container */
+    margin: 0 auto; /* Center the container */
+    padding: 30px; /* Increase padding for more space inside the container */
+    border: 1px solid #ccc; /* Optional: Add a border */
+    border-radius: 8px; /* Rounded corners */
+    background-color: #fff; /* White background */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+/* Main Heading Styles */
+h1 {
+    color: #333; /* Dark gray color for headings */
+    text-align: center; /* Center the main heading */
+    margin-bottom: 20px; /* Space below the heading */
+}
+
+/* Form Styles */
+form {
+    background: #ffffff; /* White background for forms */
+    padding: 20px; /* Padding inside the form */
+    border-radius: 8px; /* Rounded corners for form */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    margin-bottom: 20px; /* Space below the form */
+}
+
+/* Utility Section Styles */
+#utilityButtons {
+    display: flex;
+    flex-wrap: wrap; /* Allows buttons to wrap on small screens */
+    justify-content: center; /* Center the buttons */
+    gap: 15px; /* Space between buttons */
+    margin-top: 30px; /* Space above the utility buttons */
+}
+
+.utility-button {
+    background-color: #007BFF; /* Primary button color (blue) */
+    color: white; /* White text */
+    border: none; /* No border */
+    padding: 10px 20px; /* Slightly smaller padding for the button */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    font-size: 1em; /* Slightly smaller font size */
+    transition: background-color 0.3s ease, transform 0.2s; /* Smooth transitions */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+}
+
+.utility-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: translateY(-2px); /* Lift effect on hover */
+}
+
+.image-container {
+    text-align: center; /* Center-aligns the content */
+    margin: 20px 0; /* Adds vertical space around the image */
+}
+
+.image-container img {
+    max-width: 100%; /* Ensure the image does not exceed the container width */
+    height: auto; /* Maintain aspect ratio */
+    border-radius: 8px; /* Optional: Rounded corners for the image */
+}
+
+
+/* Back Button Styles */
+.back-button {
+    display: inline-block; /* Inline block for better padding */
+    background-color: #007BFF; /* Primary button color (blue) */
+    color: white; /* White text */
+    padding: 10px 15px; /* Padding for button */
+    border-radius: 5px; /* Rounded corners */
+    text-decoration: none; /* No underline */
+    transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+.back-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+
+.navigation-container {
+    text-align: center; /* Center the content */
+    margin-top: 20px; /* Space above the navigation */
+}
