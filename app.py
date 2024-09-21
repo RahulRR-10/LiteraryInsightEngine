@@ -8,6 +8,10 @@ from collections import Counter
 from nltk.corpus import stopwords
 import nltk
 import folium  # Import folium for geospatial visualization
+from geopy.geocoders import Nominatim
+
+geolocator = Nominatim(user_agent="geoapiExercises")
+
 
 # Ensure you have the NLTK stopwords downloaded
 nltk.download('stopwords')
@@ -79,15 +83,24 @@ def extract_locations(text):
 # Function to generate a map based on locations
 def generate_map(locations, filename):
     m = folium.Map(location=[20, 0], zoom_start=2)  # Initialize map at a global view
+    
     for location in locations:
-        # You can replace this with actual geocoding to get lat/lon
-        # Example: get coordinates using geopy
-        folium.Marker([20, 0], popup=location).add_to(m)  # Replace with actual coordinates
+        try:
+            # Geocode the location to get latitude and longitude
+            loc = geolocator.geocode(location)
+            if loc:
+                # Add a marker at the geocoded location
+                folium.Marker([loc.latitude, loc.longitude], popup=location).add_to(m)
+            else:
+                logger.warning(f"Location '{location}' could not be geocoded.")
+        except Exception as e:
+            logger.error(f"Geocoding error for '{location}': {str(e)}")
 
     map_path = os.path.join(app.config['MAPS_FOLDER'], f"{filename}.html")
     m.save(map_path)
     logger.debug(f"Map saved to {map_path}")
     return map_path
+
 
 @app.route('/')
 def index():
