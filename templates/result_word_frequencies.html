@@ -2,31 +2,61 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Word Frequencies</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>Word Frequencies</h1>
-        <div id="graph"></div>
+
+        <div class="image-container">
+            <canvas id="graph"></canvas>
+        </div>
+
         <div class="navigation-container">
             <a href="{{ url_for('index') }}" class="back-button">Back to Dashboard</a>
         </div>
     </div>
 
     <script>
-        const wordFrequencies = {{ word_frequencies | tojson }};
+        const wordFrequencies = {{ word_frequencies|tojson }};
         const words = Object.keys(wordFrequencies);
         const frequencies = Object.values(wordFrequencies);
 
-        const data = [{
-            x: words,
-            y: frequencies,
-            type: 'bar'
-        }];
-
-        Plotly.newPlot('graph', data);
+        const ctx = document.getElementById('graph').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: words,
+                datasets: [{
+                    label: 'Word Frequency',
+                    data: frequencies,
+                    backgroundColor: 'rgba(0, 123, 255, 0.6)',
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Frequency'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Words'
+                        }
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>

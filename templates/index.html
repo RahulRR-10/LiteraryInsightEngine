@@ -3,79 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Literary Insight Engine</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
         <h1>Literary Insight Engine</h1>
-        
-        <h2>Upload Text Files</h2>
-        <form id="uploadForm" enctype="multipart/form-data">
-            <input type="file" name="file" accept=".txt" required>
-            <button type="submit">Upload</button>
+
+        <h2>Upload Text File</h2>
+        <form id="uploadForm">
+            <input type="file" id="fileInput" accept=".txt">
+            <button type="button" class="utility-button" onclick="uploadFile()">Upload</button>
         </form>
 
-        <div id="uploadedFileInfo">
-            <p>No file uploaded yet.</p>
-        </div>
+        <div id="uploadedFileInfo">No file uploaded yet.</div>
 
         <h2>Select Utility</h2>
         <div id="utilityButtons">
-            <button class="utility-button" id="generateWordCloud">Word Cloud</button>
-            <button class="utility-button" id="generateWordFrequencies">Word Frequencies</button>
+            <button class="utility-button" onclick="generateWordCloud()" disabled>Word Cloud</button>
+            <button class="utility-button" onclick="generateWordFrequencies()" disabled>Word Frequencies</button>
         </div>
     </div>
 
     <script>
-        document.getElementById('uploadForm').onsubmit = async function(event) {
-            event.preventDefault();
-            const formData = new FormData(this);
-            const response = await fetch('/upload', {
-                method: 'POST',
-                body: formData,
-            });
-            const result = await response.json();
-            document.getElementById('uploadedFileInfo').innerText = result.message || result.error;
-            if (result.filename) {
-                window.uploadedFilename = result.filename; // Store the uploaded filename globally for later use.
+        let uploadedFileName = '';
+
+        // Load the uploaded file information when the page loads
+        window.onload = function() {
+            const storedFileName = localStorage.getItem('uploadedFileName');
+            if (storedFileName) {
+                uploadedFileName = storedFileName;
+                document.getElementById('uploadedFileInfo').textContent = `Uploaded file: ${uploadedFileName}`;
+                enableUtilityButtons();
             }
-        };
-
-        document.getElementById('generateWordCloud').onclick = function() {
-            handleUtility('generate_wordcloud');
-        };
-
-        document.getElementById('generateWordFrequencies').onclick = function() {
-            handleUtility('generate_word_frequencies');
-        };
-
-        async function handleUtility(utility) {
-    if (!window.uploadedFilename) {
-        alert("Please upload a file first.");
-        return;
-    }
-    const response = await fetch(`/${utility}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ filename: window.uploadedFilename }),
-    });
-
-    const result = await response.json();
-    if (response.ok) {
-        if (utility === 'generate_wordcloud' && result.image_filename) {
-            window.location.href = `/result/word_cloud?image_filename=${result.image_filename}`;
-        } else if (utility === 'generate_word_frequencies') {
-            const wordFrequenciesStr = JSON.stringify(result);
-            window.location.href = `/result/word_frequencies?word_frequencies=${encodeURIComponent(wordFrequenciesStr)}`;
         }
-    } else {
-        alert(result.error || "An unknown error occurred.");
-    }
-}
 
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.filename) {
+                        uploadedFileName = data.filename;
+                        localStorage.setItem('uploadedFileName', uploadedFileName);
+                        document.getElementById('uploadedFileInfo').textContent = `Uploaded file: ${uploadedFileName}`;
+                        enableUtilityButtons();
+                    } else {
+                        alert('Upload failed: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Upload failed. Please try again.');
+                });
+            } else {
+                alert('Please select a file to upload.');
+            }
+        }
+
+        function enableUtilityButtons() {
+            const buttons = document.querySelectorAll('.utility-button');
+            buttons.forEach(button => button.disabled = false);
+        }
+
+        function generateWordCloud() {
+            fetch('/generate_wordcloud', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ filename: uploadedFileName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error generating word cloud: ' + data.error);
+                } else {
+                    window.location.href = `/result/word_cloud?image_filename=${data.image_filename}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to generate word cloud. Please try again.');
+            });
+        }
+
+        function generateWordFrequencies() {
+            fetch('/generate_word_frequencies', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ filename: uploadedFileName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error generating word frequencies: ' + data.error);
+                } else {
+                    const wordFrequenciesStr = encodeURIComponent(JSON.stringify(data));
+                    window.location.href = `/result/word_frequencies?word_frequencies=${wordFrequenciesStr}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to generate word frequencies. Please try again.');
+            });
+        }
     </script>
 </body>
 </html>

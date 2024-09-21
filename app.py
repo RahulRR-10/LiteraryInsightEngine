@@ -1,7 +1,7 @@
 import os
 import re
 import logging
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 import json
 from wordcloud import WordCloud
 from collections import Counter
@@ -16,6 +16,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key_here'  # Add this line for session management
 
 # Folder setup
 UPLOAD_FOLDER = 'uploads/'
@@ -79,17 +80,16 @@ def upload_file():
         filename = file.filename
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
+        session['uploaded_file'] = filename  # Store filename in session
         return jsonify({'message': 'File uploaded successfully', 'filename': filename}), 200
     else:
         return jsonify({'error': 'Invalid file type'}), 400
 
 @app.route('/generate_wordcloud', methods=['POST'])
 def generate_wordcloud():
-    data = request.json
-    filename = data.get('filename')
-
+    filename = session.get('uploaded_file')
     if not filename:
-        return jsonify({'error': 'No file provided'}), 400
+        return jsonify({'error': 'No file uploaded'}), 400
 
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     try:
@@ -114,13 +114,10 @@ def generate_wordcloud():
 
 @app.route('/generate_word_frequencies', methods=['POST'])
 def generate_word_frequencies_endpoint():
-    data = request.json
-    logger.debug(f"Received data for word frequencies: {data}")
-
-    filename = data.get('filename')
+    filename = session.get('uploaded_file')
     if not filename:
-        logger.error('No filename provided')
-        return jsonify({'error': 'No file provided'}), 400
+        logger.error('No file uploaded')
+        return jsonify({'error': 'No file uploaded'}), 400
 
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     try:
@@ -158,7 +155,6 @@ def word_frequencies_result():
         return "Invalid word frequencies format: Expected a dictionary", 400
 
     return render_template('result_word_frequencies.html', word_frequencies=word_frequencies)
-
 
 @app.route('/result/word_cloud')
 def word_cloud_result():
