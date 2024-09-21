@@ -44,34 +44,70 @@ input[type="file"] {
 }
 
 /* Utility Section Styles */
-#utilityButtons {
+.utility-container {
     display: flex;
     flex-wrap: wrap; /* Allows buttons to wrap on small screens */
-    justify-content: center; /* Center the buttons */
-    gap: 15px; /* Space between buttons */
-    margin-top: 30px; /* Space above the utility buttons */
+    justify-content: center; /* Center the utility cards */
+    gap: 20px; /* Space between cards */
+    margin-top: 30px; /* Space above the utility section */
 }
 
-.utility-button {
-    background-color: #007BFF; /* Primary button color (blue) */
+.utility-card {
+    background-color: #fff; /* White background */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+    padding: 20px; /* Padding inside the card */
+    text-align: center; /* Center-align text */
+    max-width: 300px; /* Limit card width */
+    flex: 1 1 auto; /* Allow flexibility */
+}
+
+.utility-card:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Increase shadow on hover */
+    transform: translateY(-2px); /* Lift effect */
+    transition: box-shadow 0.3s ease, transform 0.3s ease; /* Smooth transition */
+}
+
+/* Button Base Styles */
+.utility-button,
+.back-button {
+    background-color: #4285F4; /* Google blue */
     color: white; /* White text */
+    padding: 10px 20px; /* Padding for button */
+    border-radius: 4px; /* Slightly rounded corners */
     border: none; /* No border */
-    padding: 10px 20px; /* Slightly smaller padding for the button */
-    border-radius: 5px; /* Rounded corners */
     cursor: pointer; /* Pointer cursor on hover */
-    font-size: 1em; /* Slightly smaller font size */
-    transition: background-color 0.3s ease, transform 0.2s; /* Smooth transitions */
+    font-size: 1em; /* Font size */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transitions */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
 }
 
-.utility-button:hover {
-    background-color: #0056b3; /* Darker blue on hover */
-    transform: translateY(-2px); /* Lift effect on hover */
+.utility-button:hover,
+.back-button:hover {
+    background-color: #357AE8; /* Darker blue on hover */
 }
 
-/* Image Container Styles */
+.utility-button:active,
+.back-button:active {
+    background-color: #0056b3; /* Even darker blue on click */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Reduce shadow on click */
+    transform: translateY(1px); /* Slightly lower effect on click */
+}
+
+/* Navigation Container Styles */
+.navigation-container {
+    text-align: center; /* Center the content */
+    margin-top: 20px; /* Space above the navigation */
+}
+
+/* File Upload Info Styles */
+#uploadedFileInfo {
+    margin-top: 15px; /* Space above the uploaded file info */
+    color: #555; /* Medium gray for text */
+    text-align: center; /* Center the text */
+}
 .image-container {
-    text-align: center; /* Center-aligns the content */
+    text-align: center; /* Center-align the image */
     margin: 20px 0; /* Adds vertical space around the image */
 }
 
@@ -79,25 +115,4 @@ input[type="file"] {
     max-width: 100%; /* Ensure the image does not exceed the container width */
     height: auto; /* Maintain aspect ratio */
     border-radius: 8px; /* Optional: Rounded corners for the image */
-}
-
-/* Back Button Styles */
-.back-button {
-    display: inline-block; /* Inline block for better padding */
-    background-color: #007BFF; /* Primary button color (blue) */
-    color: white; /* White text */
-    padding: 10px 15px; /* Padding for button */
-    border-radius: 5px; /* Rounded corners */
-    text-decoration: none; /* No underline */
-    transition: background-color 0.3s ease; /* Smooth transition */
-}
-
-.back-button:hover {
-    background-color: #0056b3; /* Darker blue on hover */
-}
-
-/* Navigation Container Styles */
-.navigation-container {
-    text-align: center; /* Center the content */
-    margin-top: 20px; /* Space above the navigation */
 }
