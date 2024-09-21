@@ -1,15 +1,12 @@
 import os
 import re
 import logging
-import json
 from flask import Flask, render_template, request, jsonify, session
+import json
 from wordcloud import WordCloud
 from collections import Counter
 from nltk.corpus import stopwords
 import nltk
-from gensim import corpora
-from gensim.models import LdaModel
-import pyLDAvis.gensim_models
 
 # Ensure you have the NLTK stopwords downloaded
 nltk.download('stopwords')
@@ -24,14 +21,11 @@ app.secret_key = 'your_secret_key_here'  # Add this line for session management
 # Folder setup
 UPLOAD_FOLDER = 'uploads/'
 WORDCLOUD_FOLDER = 'static/wordclouds/'  # Store word clouds in static folder for serving
-TOPIC_MODEL_FOLDER = 'static/topic_models/'  # Store topic model visuals
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(WORDCLOUD_FOLDER, exist_ok=True)
-os.makedirs(TOPIC_MODEL_FOLDER, exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['WORDCLOUD_FOLDER'] = WORDCLOUD_FOLDER
-app.config['TOPIC_MODEL_FOLDER'] = TOPIC_MODEL_FOLDER
 
 # Allowed file types
 ALLOWED_EXTENSIONS = {'txt'}
@@ -71,28 +65,6 @@ def generate_word_frequencies(text):
     words = cleaned_text.split()
     word_frequencies = dict(Counter(words).most_common(50))
     return word_frequencies
-
-# Function to generate topic modeling data
-def generate_topic_modeling(text, filename):
-    cleaned_text = clean_text(text)
-    words = cleaned_text.split()
-
-    # Create a dictionary and corpus for LDA
-    dictionary = corpora.Dictionary([words])
-    corpus = [dictionary.doc2bow(words)]
-    
-    # Train LDA model
-    lda_model = LdaModel(corpus, num_topics=5, id2word=dictionary, passes=10)
-
-    # Prepare visualization
-    vis = pyLDAvis.gensim_models.prepare(lda_model, corpus, dictionary)
-    vis_file_path = os.path.join(app.config['TOPIC_MODEL_FOLDER'], f"{filename}_topic_model.html")
-
-    # Save the visualization
-    pyLDAvis.save_html(vis, vis_file_path)
-
-    logger.debug(f"Topic model visualization saved to {vis_file_path}")
-    return vis_file_path
 
 @app.route('/')
 def index():
@@ -166,33 +138,6 @@ def generate_word_frequencies_endpoint():
         logger.error(f"Error generating word frequencies: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/generate_topic_modeling', methods=['POST'])
-def generate_topic_modeling_endpoint():
-    filename = session.get('uploaded_file')
-    if not filename:
-        logger.error('No file uploaded')
-        return jsonify({'error': 'No file uploaded'}), 400
-
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    try:
-        logger.debug(f"Looking for file at: {file_path}")
-        if not os.path.exists(file_path):
-            logger.error('File not found')
-            return jsonify({'error': 'File not found'}), 404
-        
-        with open(file_path, 'r', encoding='utf-8') as file:
-            text = file.read()
-
-        logger.debug('File read successfully, generating topic modeling')
-        vis_file_path = generate_topic_modeling(text, filename)
-
-        return jsonify({
-            'redirect': f'/result/topic_modeling?vis_filename={os.path.basename(vis_file_path)}'
-        }), 200
-    except Exception as e:
-        logger.error(f"Error generating topic modeling: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-
 @app.route('/result/word_frequencies')
 def word_frequencies_result():
     word_frequencies_str = request.args.get('word_frequencies')
@@ -218,14 +163,6 @@ def word_cloud_result():
         return "Missing image filename", 400
 
     return render_template('result_word_cloud.html', image_filename=image_filename)
-
-@app.route('/result/topic_modeling')
-def topic_modeling_result():
-    vis_filename = request.args.get('vis_filename')
-    if not vis_filename:
-        return "Missing visualization filename", 400
-
-    return render_template('result_topic_model.html', vis_filename=vis_filename)
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -33,9 +33,13 @@
                 <p>View the frequency of each word in the text.</p>
                 <button class="utility-button" onclick="generateWordFrequencies()" disabled>Generate Word Frequencies</button>
             </div>
+            <div class="utility-card">
+                <i class="fas fa-layer-group" style="font-size: 48px; color: #4285F4;"></i>
+                <h2>Topic Modeling</h2>
+                <p>Discover hidden topics in the text using LDA.</p>
+                <button class="utility-button" onclick="generateTopicModeling()" disabled>Generate Topic Model</button>
+            </div>
         </div>
-
-       
     </div>
 
     <script>
@@ -129,6 +133,28 @@
             .catch(error => {
                 console.error('Error:', error);
                 alert('Failed to generate word frequencies. Please try again.');
+            });
+        }
+
+        function generateTopicModeling() {
+            fetch('/generate_topic_modeling', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ filename: uploadedFileName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error generating topic modeling: ' + data.error);
+                } else {
+                    window.location.href = data.redirect;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to generate topic modeling. Please try again.');
             });
         }
     </script>

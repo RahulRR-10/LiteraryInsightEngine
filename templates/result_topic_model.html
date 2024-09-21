@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topic Modeling Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Topic Modeling Results</h1>
+        {% if topics %}
+            <ul>
+                {% for topic in topics %}
+                    <li>Topic {{ topic[0] }}: {{ topic[1] }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No topics found.</p>
+        {% endif %}
+        <a href="/">Go back</a>
+    </div>
+</body>
+</html>
