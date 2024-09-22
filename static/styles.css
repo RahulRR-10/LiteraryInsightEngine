@@ -116,32 +116,6 @@ input[type="file"] {
     height: auto; /* Maintain aspect ratio */
     border-radius: 8px; /* Optional: Rounded corners for the image */
 }
-/* LDA Visualization Styles */
-.lda-container {
-    margin-top: 20px; /* Space above the LDA visualization */
-}
-
-.lda-title {
-    font-size: 1.5em; /* Larger font size for the title */
-    margin-bottom: 10px; /* Space below the title */
-    text-align: center; /* Center the title */
-}
-
-.lda-iframe {
-    border: none; /* Remove border from iframe */
-    width: 100%; /* Full width */
-    height: 600px; /* Fixed height for the iframe */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-}
-/* LDA Visualization Container */
-.lda-visualization {
-    max-width: 1000px; /* Limit max width */
-    margin: 0 auto; /* Center the visualization */
-    padding: 20px; /* Add padding */
-    border-radius: 8px; /* Rounded corners */
-    background-color: #fff; /* White background */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Shadow for depth */
-}
 
 /* Topic Title Styles */
 .topic-title {

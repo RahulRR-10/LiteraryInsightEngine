@@ -7,17 +7,42 @@ from collections import Counter
 from nltk.corpus import stopwords
 import nltk
 import folium
+from folium.plugins import MarkerCluster, FastMarkerCluster
 from geopy.geocoders import Nominatim
+from geopy.extra.rate_limiter import RateLimiter
 import spacy
-from cachetools import TTLCache
+from cachetools import TTLCache, LRUCache
 from functools import lru_cache
+import ujson
+import numpy as np
+from sklearn.cluster import DBSCAN
+from shapely.geometry import MultiPoint
 
-# Initialize SpaCy
-nlp = spacy.load("en_core_web_sm", disable=["tagger", "parser", "lemmatizer"])
 
-# Initialize Nominatim geolocator with caching
-geolocator = Nominatim(user_agent="geoapiExercises")
+# Initialize SpaCy with only the necessary components
+nlp = spacy.load("en_core_web_sm", disable=["tagger", "parser", "lemmatizer", "attribute_ruler", "ner"])
+nlp.add_pipe("entity_ruler").from_disk("entity_patterns.jsonl")
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# # Configure requests session with retry strategy
+# session = requests.Session()
+# retry = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
+# adapter = HTTPAdapter(max_retries=retry)
+# session.mount('http://', adapter)
+# session.mount('https://', adapter)
+
+# Initialize the geocode cache
 geocode_cache = TTLCache(maxsize=1000, ttl=86400)
+
+# Initialize Nominatim geolocator with custom adapter and increased timeout
+geolocator = Nominatim(
+    user_agent="geoapiExercises",
+    timeout=5,
+    domain='nominatim.openstreetmap.org'
+)
 
 # Ensure NLTK stopwords are downloaded
 nltk.download('stopwords', quiet=True)
@@ -71,23 +96,48 @@ def generate_word_cloud(text, filename):
 
 def extract_locations(text):
     doc = nlp(text)
-    return list(set(ent.text for ent in doc.ents if ent.label_ == "GPE"))
+    locations = {ent.text for ent in doc.ents if ent.label_ in ["GPE", "LOC"]}
+    
+    # Additional step to catch country names that might be missed
+    potential_countries = set(text.split())  # Split the text into words
+    countries = set()
+    for loc in potential_countries:
+        if len(loc) > 1 and loc.isalpha():  # Basic filtering
+            if geocode_place(loc):
+                countries.add(loc)
+    
+    locations.update(countries)
+    
+    logger.info(f"Extracted locations: {locations}")
+    return locations
+
 
 def geocode_place(place):
     if place in geocode_cache:
         return geocode_cache[place]
     
-    try:
-        location = geolocator.geocode(place)
-        if location:
-            result = (location.latitude, location.longitude)
-            geocode_cache[place] = result
-            return result
-    except Exception as e:
-        logger.error(f"Geocoding error for '{place}': {str(e)}")
+    for attempt in range(3):  # Try up to 3 times
+        try:
+            location = geolocator.geocode(place, exactly_one=True)
+            if location:
+                result = (location.latitude, location.longitude)
+                geocode_cache[place] = result
+                logger.info(f"Geocoded '{place}' to {result}")
+                return result
+            else:
+                logger.warning(f"Could not geocode '{place}'")
+                return None
+        except (GeocoderTimedOut, GeocoderUnavailable) as e:
+            logger.warning(f"Geocoding attempt {attempt + 1} failed for '{place}': {str(e)}")
+            time.sleep(1)  # Wait for 1 second before retrying
+    
+    logger.error(f"Failed to geocode '{place}' after 3 attempts")
     return None
 
 def generate_map(locations, filename):
+    
+    geocode_cache.clear()
+    
     m = folium.Map(location=[20, 0], zoom_start=2)
     
     for location in locations:
@@ -96,6 +146,7 @@ def generate_map(locations, filename):
             folium.Marker(lat_lon, popup=location).add_to(m)
         else:
             logger.warning(f"Location '{location}' could not be geocoded.")
+        time.sleep(0.1)  # Add a small delay between geocoding requests
 
     map_path = os.path.join(app.config['MAPS_FOLDER'], f"{filename}.html")
     m.save(map_path)
@@ -169,21 +220,25 @@ def generate_geospatial():
     filename = session.get('uploaded_file')
     if not filename:
         return jsonify({'error': 'No file uploaded'}), 400
-
+    
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             text = file.read()
-
+        
         locations = extract_locations(text)
+        logger.info(f"Extracted locations from {filename}: {locations}")
+        
         if not locations:
             return jsonify({'message': 'No locations found in the text'}), 200
-
+        
         map_path = generate_map(locations, filename)
         return jsonify({'map_filename': os.path.basename(map_path)}), 200
     except Exception as e:
         logger.error(f"Error generating geospatial data: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/result/word_frequencies')
 def word_frequencies_result():
