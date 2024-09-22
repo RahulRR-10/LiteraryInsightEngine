@@ -1,106 +1,106 @@
 import os
 import re
 import logging
-import json
 from flask import Flask, render_template, request, jsonify, session
 from wordcloud import WordCloud
 from collections import Counter
 from nltk.corpus import stopwords
 import nltk
-import folium  # Import folium for geospatial visualization
+import folium
 from geopy.geocoders import Nominatim
+import spacy
+from cachetools import TTLCache
+from functools import lru_cache
 
+# Initialize SpaCy
+nlp = spacy.load("en_core_web_sm", disable=["tagger", "parser", "lemmatizer"])
+
+# Initialize Nominatim geolocator with caching
 geolocator = Nominatim(user_agent="geoapiExercises")
+geocode_cache = TTLCache(maxsize=1000, ttl=86400)
 
-
-# Ensure you have the NLTK stopwords downloaded
-nltk.download('stopwords')
+# Ensure NLTK stopwords are downloaded
+nltk.download('stopwords', quiet=True)
 
 # Set up logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'  # Add this line for session management
+app.secret_key = os.environ.get('SECRET_KEY', 'fallback_secret_key')
 
 # Folder setup
 UPLOAD_FOLDER = 'uploads/'
 WORDCLOUD_FOLDER = 'static/wordclouds/'
-MAPS_FOLDER = 'static/maps/'  # Store maps in static folder for serving
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(WORDCLOUD_FOLDER, exist_ok=True)
-os.makedirs(MAPS_FOLDER, exist_ok=True)
+MAPS_FOLDER = 'static/maps/'
+for folder in [UPLOAD_FOLDER, WORDCLOUD_FOLDER, MAPS_FOLDER]:
+    os.makedirs(folder, exist_ok=True)
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['WORDCLOUD_FOLDER'] = WORDCLOUD_FOLDER
-app.config['MAPS_FOLDER'] = MAPS_FOLDER
+app.config.update(
+    UPLOAD_FOLDER=UPLOAD_FOLDER,
+    WORDCLOUD_FOLDER=WORDCLOUD_FOLDER,
+    MAPS_FOLDER=MAPS_FOLDER
+)
 
-# Allowed file types
 ALLOWED_EXTENSIONS = {'txt'}
 
-# Helper function to check file extension
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Function to clean the text
+@lru_cache(maxsize=100)
 def clean_text(text):
     text = text.lower()
     text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
     stop_words = set(stopwords.words('english'))
-    text = ' '.join(word for word in text.split() if word not in stop_words)
-    return text
+    return ' '.join(word for word in text.split() if word not in stop_words)
 
-# Function to generate word cloud and frequency data
 def generate_word_cloud(text, filename):
     try:
         cleaned_text = clean_text(text)
-        words = cleaned_text.split()
-        word_frequencies = dict(Counter(words).most_common(50))
+        word_frequencies = dict(Counter(cleaned_text.split()).most_common(50))
 
-        wordcloud = WordCloud(width=800, height=400, background_color='white').generate(cleaned_text)
+        wordcloud = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(word_frequencies)
         image_path = os.path.join(app.config['WORDCLOUD_FOLDER'], f"{filename}.png")
         wordcloud.to_file(image_path)
 
-        logger.debug(f"Word cloud saved to {image_path}")
+        logger.info(f"Word cloud saved to {image_path}")
         return image_path, word_frequencies
     except Exception as e:
         logger.error(f"Error generating word cloud: {str(e)}")
         return None, None
 
-# Function to generate word frequencies
-def generate_word_frequencies(text):
-    cleaned_text = clean_text(text)
-    words = cleaned_text.split()
-    word_frequencies = dict(Counter(words).most_common(50))
-    return word_frequencies
-
-# Function to extract locations from text (example implementation)
 def extract_locations(text):
-    # Simple regex-based location extraction (you may want to improve this)
-    location_pattern = r'\b(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*)\b'
-    return re.findall(location_pattern, text)
+    doc = nlp(text)
+    return list(set(ent.text for ent in doc.ents if ent.label_ == "GPE"))
 
-# Function to generate a map based on locations
+def geocode_place(place):
+    if place in geocode_cache:
+        return geocode_cache[place]
+    
+    try:
+        location = geolocator.geocode(place)
+        if location:
+            result = (location.latitude, location.longitude)
+            geocode_cache[place] = result
+            return result
+    except Exception as e:
+        logger.error(f"Geocoding error for '{place}': {str(e)}")
+    return None
+
 def generate_map(locations, filename):
-    m = folium.Map(location=[20, 0], zoom_start=2)  # Initialize map at a global view
+    m = folium.Map(location=[20, 0], zoom_start=2)
     
     for location in locations:
-        try:
-            # Geocode the location to get latitude and longitude
-            loc = geolocator.geocode(location)
-            if loc:
-                # Add a marker at the geocoded location
-                folium.Marker([loc.latitude, loc.longitude], popup=location).add_to(m)
-            else:
-                logger.warning(f"Location '{location}' could not be geocoded.")
-        except Exception as e:
-            logger.error(f"Geocoding error for '{location}': {str(e)}")
+        lat_lon = geocode_place(location)
+        if lat_lon:
+            folium.Marker(lat_lon, popup=location).add_to(m)
+        else:
+            logger.warning(f"Location '{location}' could not be geocoded.")
 
     map_path = os.path.join(app.config['MAPS_FOLDER'], f"{filename}.html")
     m.save(map_path)
-    logger.debug(f"Map saved to {map_path}")
+    logger.info(f"Map saved to {map_path}")
     return map_path
-
 
 @app.route('/')
 def index():
@@ -129,9 +129,6 @@ def generate_wordcloud():
 
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     try:
-        if not os.path.exists(file_path):
-            return jsonify({'error': 'File not found'}), 404
-        
         with open(file_path, 'r', encoding='utf-8') as file:
             text = file.read()
 
@@ -152,23 +149,16 @@ def generate_wordcloud():
 def generate_word_frequencies_endpoint():
     filename = session.get('uploaded_file')
     if not filename:
-        logger.error('No file uploaded')
         return jsonify({'error': 'No file uploaded'}), 400
 
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     try:
-        logger.debug(f"Looking for file at: {file_path}")
-        if not os.path.exists(file_path):
-            logger.error('File not found')
-            return jsonify({'error': 'File not found'}), 404
-        
         with open(file_path, 'r', encoding='utf-8') as file:
             text = file.read()
 
-        logger.debug('File read successfully, generating word frequencies')
-        word_frequencies = generate_word_frequencies(text)
+        cleaned_text = clean_text(text)
+        word_frequencies = dict(Counter(cleaned_text.split()).most_common(50))
 
-        logger.debug(f"Generated word frequencies: {word_frequencies}")
         return jsonify(word_frequencies), 200
     except Exception as e:
         logger.error(f"Error generating word frequencies: {str(e)}")
@@ -178,15 +168,10 @@ def generate_word_frequencies_endpoint():
 def generate_geospatial():
     filename = session.get('uploaded_file')
     if not filename:
-        logger.error('No file uploaded')
         return jsonify({'error': 'No file uploaded'}), 400
 
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     try:
-        if not os.path.exists(file_path):
-            logger.error('File not found')
-            return jsonify({'error': 'File not found'}), 404
-        
         with open(file_path, 'r', encoding='utf-8') as file:
             text = file.read()
 
@@ -202,18 +187,14 @@ def generate_geospatial():
 
 @app.route('/result/word_frequencies')
 def word_frequencies_result():
-    word_frequencies_str = request.args.get('word_frequencies')
-
-    if not word_frequencies_str:
+    word_frequencies = request.args.get('word_frequencies')
+    if not word_frequencies:
         return "Missing word frequencies", 400
 
     try:
-        word_frequencies = json.loads(word_frequencies_str)
-    except json.JSONDecodeError:
+        word_frequencies = eval(word_frequencies)
+    except:
         return "Invalid word frequencies format", 400
-
-    if not isinstance(word_frequencies, dict):
-        return "Invalid word frequencies format: Expected a dictionary", 400
 
     return render_template('result_word_frequencies.html', word_frequencies=word_frequencies)
 
@@ -231,7 +212,11 @@ def geospatial_result():
     if not map_filename:
         return "Missing map filename", 400
 
+    map_path = os.path.join(app.config['MAPS_FOLDER'], map_filename)
+    if not os.path.exists(map_path):
+        return "Map not found", 404
+
     return render_template('result_geospatial.html', map_filename=map_filename)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=False)
