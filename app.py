@@ -1,7 +1,7 @@
 import os
 import re
 import logging
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from wordcloud import WordCloud
 from collections import Counter
 from nltk.corpus import stopwords
@@ -17,6 +17,14 @@ import ujson
 import numpy as np
 from sklearn.cluster import DBSCAN
 from shapely.geometry import MultiPoint
+import time
+from textblob import TextBlob 
+import matplotlib.pyplot as plt
+import io
+import base64
+
+
+app = Flask(__name__)
 
 
 # Initialize SpaCy with only the necessary components
@@ -27,12 +35,7 @@ nlp.add_pipe("entity_ruler").from_disk("entity_patterns.jsonl")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# # Configure requests session with retry strategy
-# session = requests.Session()
-# retry = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
-# adapter = HTTPAdapter(max_retries=retry)
-# session.mount('http://', adapter)
-# session.mount('https://', adapter)
+
 
 # Initialize the geocode cache
 geocode_cache = TTLCache(maxsize=1000, ttl=86400)
@@ -238,6 +241,63 @@ def generate_geospatial():
     except Exception as e:
         logger.error(f"Error generating geospatial data: {str(e)}")
         return jsonify({'error': str(e)}), 500
+    
+
+def generate_sentiment_graph(image_path, sentiment_score):
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=(8, 5))
+    
+    # Data for the sentiment visualization
+    categories = ['Positive', 'Neutral', 'Negative']
+    values = [0, 0, 0]
+
+    if sentiment_score > 0:
+        values[0] = sentiment_score  # Positive
+    elif sentiment_score < 0:
+        values[2] = -sentiment_score  # Negative
+    else:
+        values[1] = 1  # Neutral
+
+    plt.bar(categories, values, color=['rgba(0, 123, 255, 0.6)', 'rgba(255, 193, 7, 0.6)', 'rgba(220, 53, 69, 0.6)'])
+    plt.ylabel('Frequency')
+    plt.title('Sentiment Analysis')
+    plt.savefig(image_path)
+    plt.close()
+
+
+@app.route('/generate_sentiment', methods=['POST'])
+def generate_sentiment():
+    try:
+        # Assuming the text is sent in the POST request body as JSON
+        data = request.get_json()
+        text = data.get('text')  # Extract the text for analysis
+
+        # Generate sentiment score and description
+        analysis = TextBlob(text)
+        sentiment_score = analysis.sentiment.polarity  # Score between -1 (negative) and 1 (positive)
+        
+        # Determine sentiment description
+        if sentiment_score > 0:
+            sentiment_description = "Positive"
+        elif sentiment_score < 0:
+            sentiment_description = "Negative"
+        else:
+            sentiment_description = "Neutral"
+
+        # Generate the sentiment graph image
+        image_path = 'static/sentiment_graph.png'  # Adjust the path as needed
+        generate_sentiment_graph(sentiment_score, image_path)  # Pass the sentiment score
+
+        return jsonify({
+            'sentiment_score': sentiment_score,
+            'sentiment_description': sentiment_description,
+            'image': image_path
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400  # Return an error response
+
+
 
 
 @app.route('/result/word_frequencies')
@@ -273,5 +333,19 @@ def geospatial_result():
 
     return render_template('result_geospatial.html', map_filename=map_filename)
 
+@app.route('/result/sentiment')
+def sentiment_result():
+    sentiment_score = request.args.get('sentiment_score')
+    sentiment_description = request.args.get('sentiment_description')
+    image = request.args.get('image')  # Get the image data
+
+    if sentiment_score is None or sentiment_description is None or image is None:
+        return "Missing sentiment data", 400
+
+    return render_template('result_sentiment.html', 
+                           sentiment_score=sentiment_score, 
+                           sentiment_description=sentiment_description, 
+                           image=image)
+
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)

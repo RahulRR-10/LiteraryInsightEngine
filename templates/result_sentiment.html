@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Sentiment Analysis Result</h1>
+
+        <div class="image-container">
+            <canvas id="sentimentGraph"></canvas>
+        </div>
+
+        <div class="result-summary">
+            <h2>Sentiment Score: {{ sentiment_score }}</h2>
+            <h3>Sentiment Description: {{ sentiment_description }}</h3>
+        </div>
+
+        <div class="navigation-container">
+            <a href="{{ url_for('index') }}" class="back-button">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        const sentimentScore = {{ sentiment_score }};
+        const labels = ['Positive', 'Neutral', 'Negative'];
+        const dataValues = [0, 0, 0];
+
+        if (sentimentScore > 0) {
+            dataValues[0] = sentimentScore; // Positive
+        } else if (sentimentScore < 0) {
+            dataValues[2] = -sentimentScore; // Negative
+        } else {
+            dataValues[1] = 1; // Neutral
+        }
+
+        const ctx = document.getElementById('sentimentGraph').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Sentiment Analysis',
+                    data: dataValues,
+                    backgroundColor: [
+                        'rgba(0, 123, 255, 0.6)', // Positive
+                        'rgba(255, 193, 7, 0.6)',  // Neutral
+                        'rgba(220, 53, 69, 0.6)'   // Negative
+                    ],
+                    borderColor: [
+                        'rgba(0, 123, 255, 1)', 
+                        'rgba(255, 193, 7, 1)', 
+                        'rgba(220, 53, 69, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Frequency'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Sentiment Categories'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

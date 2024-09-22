@@ -39,6 +39,12 @@
                 <p>Visualize location data on a map.</p>
                 <button class="utility-button" id="geospatialButton" onclick="generateGeospatial()" disabled>Generate Geospatial Visualization</button>
             </div>
+            <div class="utility-card">
+                <i class="fas fa-smile" style="font-size: 48px; color: #4285F4;"></i>
+                <h2>Sentiment Analysis</h2>
+                <p>Analyze the sentiment of the text.</p>
+                <button class="utility-button" id="sentimentButton" onclick="generateSentiment()" disabled>Analyze Sentiment</button>
+            </div>
         </div>
     </div>
 
@@ -86,6 +92,8 @@
             document.getElementById('wordCloudButton').disabled = false;
             document.getElementById('wordFrequenciesButton').disabled = false;
             document.getElementById('geospatialButton').disabled = false;
+            document.getElementById('sentimentButton').disabled = false;
+
         }
 
         function generateWordCloud() {
@@ -137,6 +145,39 @@
             alert('Geospatial visualization generation failed: ' + error.message);
         });
 }
+function generateSentiment() {
+    const text = document.getElementById('textInput').value; // Get the input text
+    if (!text) {
+        alert("Please enter some text for analysis.");
+        return;
+    }
+
+    const formData = { text: text };
+
+    fetch('/generate_sentiment', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data) {
+            window.location.href = `/result/sentiment?sentiment_score=${data.sentiment_score}&sentiment_description=${encodeURIComponent(data.sentiment_description)}&image=${data.image}`;
+        } else {
+            alert('Sentiment analysis failed: ' + data.error);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+
 
 
 
