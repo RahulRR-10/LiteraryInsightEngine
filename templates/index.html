@@ -172,7 +172,35 @@ function generateSentiment() {
         alert('An error occurred while analyzing sentiment.');
     });
 }
+document.addEventListener('DOMContentLoaded', function() {
+    // ... (other existing code)
 
+    document.querySelector('.utility-card:nth-child(4) button').addEventListener('click', function() {
+        // Check if a file has been uploaded
+        fetch('/check_uploaded_file')
+            .then(response => response.json())
+            .then(data => {
+                if (data.file_uploaded) {
+                    // File is uploaded, proceed with sentiment analysis
+                    return fetch('/generate_sentiment', { method: 'POST' });
+                } else {
+                    throw new Error('Please upload a file first.');
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    window.location.href = '/result/sentiment?sentiment_score=' + data.sentiment_score + '&sentiment_description=' + data.sentiment_description;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(error.message || 'An error occurred while analyzing sentiment.');
+            });
+    });
+});
 
 
 

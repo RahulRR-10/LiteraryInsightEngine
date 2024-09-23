@@ -270,19 +270,32 @@ def generate_geospatial():
 #     plt.close()
 
 
+
+@app.route('/check_uploaded_file', methods=['GET'])
+def check_uploaded_file():
+    filename = session.get('uploaded_file')
+    if filename and os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
+        return jsonify({'file_uploaded': True})
+    else:
+        return jsonify({'file_uploaded': False})
+
 @app.route('/generate_sentiment', methods=['POST'])
 def generate_sentiment():
     try:
-        # Check if the request contains JSON data
-        if not request.is_json:
-            return jsonify({'error': 'Request must be JSON'}), 400
+        filename = session.get('uploaded_file')
+        if not filename:
+            return jsonify({'error': 'No file uploaded'}), 400
 
-        data = request.get_json()
-        text = data.get('text')
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        if not os.path.exists(file_path):
+            return jsonify({'error': 'File not found'}), 404
 
-        # Check if text is provided and not empty
-        if not text or not isinstance(text, str):
-            return jsonify({'error': 'Text must be provided and must be a non-empty string'}), 400
+        with open(file_path, 'r', encoding='utf-8') as file:
+            text = file.read()
+
+        if not text:
+            return jsonify({'error': 'File is empty'}), 400
 
         # Generate sentiment score and description
         analysis = TextBlob(text)
@@ -303,7 +316,6 @@ def generate_sentiment():
     except Exception as e:
         logger.error(f"Error in generate_sentiment: {str(e)}")
         return jsonify({'error': str(e)}), 500  # Return a server error response
-
 
 
 
@@ -339,6 +351,7 @@ def geospatial_result():
         return "Map not found", 404
 
     return render_template('result_geospatial.html', map_filename=map_filename)
+
 
 
 @app.route('/result/sentiment')
