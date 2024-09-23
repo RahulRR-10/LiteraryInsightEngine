@@ -45,6 +45,11 @@
                 <p>Analyze the sentiment of the text.</p>
                 <button class="utility-button" id="sentimentButton" onclick="generateSentiment()" disabled>Analyze Sentiment</button>
             </div>
+            <!-- <div class="utility-card">
+                <h2>Sentiment Analysis</h2>
+                <p>Analyze the sentiment of the text.</p>
+                <button onclick="generateSentiment()">Analyze Sentiment</button>
+              </div> -->
         </div>
     </div>
 
@@ -146,37 +151,27 @@
         });
 }
 function generateSentiment() {
-    const text = document.getElementById('textInput').value; // Get the input text
-    if (!text) {
-        alert("Please enter some text for analysis.");
-        return;
-    }
-
-    const formData = { text: text };
-
     fetch('/generate_sentiment', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({}),  // We're not sending any data, as the server will use the file from the session
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        if (data) {
-            window.location.href = `/result/sentiment?sentiment_score=${data.sentiment_score}&sentiment_description=${encodeURIComponent(data.sentiment_description)}&image=${data.image}`;
+        if (data.error) {
+            alert(data.error);
         } else {
-            alert('Sentiment analysis failed: ' + data.error);
+            // Redirect to the result page with sentiment data as URL parameters
+            window.location.href = `/result/sentiment?sentiment_score=${data.sentiment_score}&sentiment_description=${encodeURIComponent(data.sentiment_description)}&image=${encodeURIComponent(data.image)}`;
         }
     })
-    .catch(error => console.error('Error:', error));
+    .catch((error) => {
+        console.error('Error:', error);
+        alert('An error occurred while analyzing sentiment.');
+    });
 }
-
 
 
 

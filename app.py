@@ -22,6 +22,9 @@ from textblob import TextBlob
 import matplotlib.pyplot as plt
 import io
 import base64
+from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
+
+import random
 
 
 app = Flask(__name__)
@@ -115,11 +118,11 @@ def extract_locations(text):
     return locations
 
 
-def geocode_place(place):
+def geocode_place(place, max_retries=3):
     if place in geocode_cache:
         return geocode_cache[place]
     
-    for attempt in range(3):  # Try up to 3 times
+    for attempt in range(max_retries):
         try:
             location = geolocator.geocode(place, exactly_one=True)
             if location:
@@ -132,15 +135,13 @@ def geocode_place(place):
                 return None
         except (GeocoderTimedOut, GeocoderUnavailable) as e:
             logger.warning(f"Geocoding attempt {attempt + 1} failed for '{place}': {str(e)}")
-            time.sleep(1)  # Wait for 1 second before retrying
+            if attempt < max_retries - 1:
+                time.sleep(1 + random.random())  # Wait for 1-2 seconds before retrying
     
-    logger.error(f"Failed to geocode '{place}' after 3 attempts")
+    logger.error(f"Failed to geocode '{place}' after {max_retries} attempts")
     return None
 
 def generate_map(locations, filename):
-    
-    geocode_cache.clear()
-    
     m = folium.Map(location=[20, 0], zoom_start=2)
     
     for location in locations:
@@ -237,41 +238,51 @@ def generate_geospatial():
             return jsonify({'message': 'No locations found in the text'}), 200
         
         map_path = generate_map(locations, filename)
-        return jsonify({'map_filename': os.path.basename(map_path)}), 200
+        if map_path:
+            return jsonify({'map_filename': os.path.basename(map_path)}), 200
+        else:
+            return jsonify({'error': 'Failed to generate map due to geocoding errors'}), 500
     except Exception as e:
         logger.error(f"Error generating geospatial data: {str(e)}")
         return jsonify({'error': str(e)}), 500
     
 
-def generate_sentiment_graph(image_path, sentiment_score):
-    import matplotlib.pyplot as plt
+# def generate_sentiment_graph(image_path, sentiment_score):
+#     import matplotlib.pyplot as plt
 
-    plt.figure(figsize=(8, 5))
+#     plt.figure(figsize=(8, 5))
     
-    # Data for the sentiment visualization
-    categories = ['Positive', 'Neutral', 'Negative']
-    values = [0, 0, 0]
+#     # Data for the sentiment visualization
+#     categories = ['Positive', 'Neutral', 'Negative']
+#     values = [0, 0, 0]
 
-    if sentiment_score > 0:
-        values[0] = sentiment_score  # Positive
-    elif sentiment_score < 0:
-        values[2] = -sentiment_score  # Negative
-    else:
-        values[1] = 1  # Neutral
+#     if sentiment_score > 0:
+#         values[0] = sentiment_score  # Positive
+#     elif sentiment_score < 0:
+#         values[2] = -sentiment_score  # Negative
+#     else:
+#         values[1] = 1  # Neutral
 
-    plt.bar(categories, values, color=['rgba(0, 123, 255, 0.6)', 'rgba(255, 193, 7, 0.6)', 'rgba(220, 53, 69, 0.6)'])
-    plt.ylabel('Frequency')
-    plt.title('Sentiment Analysis')
-    plt.savefig(image_path)
-    plt.close()
+#     plt.bar(categories, values, color=['rgba(0, 123, 255, 0.6)', 'rgba(255, 193, 7, 0.6)', 'rgba(220, 53, 69, 0.6)'])
+#     plt.ylabel('Frequency')
+#     plt.title('Sentiment Analysis')
+#     plt.savefig(image_path)
+#     plt.close()
 
 
 @app.route('/generate_sentiment', methods=['POST'])
 def generate_sentiment():
     try:
-        # Assuming the text is sent in the POST request body as JSON
+        # Check if the request contains JSON data
+        if not request.is_json:
+            return jsonify({'error': 'Request must be JSON'}), 400
+
         data = request.get_json()
-        text = data.get('text')  # Extract the text for analysis
+        text = data.get('text')
+
+        # Check if text is provided and not empty
+        if not text or not isinstance(text, str):
+            return jsonify({'error': 'Text must be provided and must be a non-empty string'}), 400
 
         # Generate sentiment score and description
         analysis = TextBlob(text)
@@ -285,17 +296,13 @@ def generate_sentiment():
         else:
             sentiment_description = "Neutral"
 
-        # Generate the sentiment graph image
-        image_path = 'static/sentiment_graph.png'  # Adjust the path as needed
-        generate_sentiment_graph(sentiment_score, image_path)  # Pass the sentiment score
-
         return jsonify({
             'sentiment_score': sentiment_score,
-            'sentiment_description': sentiment_description,
-            'image': image_path
+            'sentiment_description': sentiment_description
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 400  # Return an error response
+        logger.error(f"Error in generate_sentiment: {str(e)}")
+        return jsonify({'error': str(e)}), 500  # Return a server error response
 
 
 
@@ -333,19 +340,18 @@ def geospatial_result():
 
     return render_template('result_geospatial.html', map_filename=map_filename)
 
+
 @app.route('/result/sentiment')
 def sentiment_result():
     sentiment_score = request.args.get('sentiment_score')
     sentiment_description = request.args.get('sentiment_description')
-    image = request.args.get('image')  # Get the image data
 
-    if sentiment_score is None or sentiment_description is None or image is None:
+    if sentiment_score is None or sentiment_description is None:
         return "Missing sentiment data", 400
 
     return render_template('result_sentiment.html', 
                            sentiment_score=sentiment_score, 
-                           sentiment_description=sentiment_description, 
-                           image=image)
+                           sentiment_description=sentiment_description)
 
 if __name__ == '__main__':
     app.run(debug=True)

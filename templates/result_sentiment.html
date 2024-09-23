@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentiment Analysis</title>
+    <title>Sentiment Analysis Result</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -12,12 +12,12 @@
         <h1>Sentiment Analysis Result</h1>
 
         <div class="image-container">
-            <canvas id="sentimentGraph"></canvas>
+            <canvas id="sentimentChart" width="400" height="400"></canvas>
         </div>
 
         <div class="result-summary">
-            <h2>Sentiment Score: {{ sentiment_score }}</h2>
-            <h3>Sentiment Description: {{ sentiment_description }}</h3>
+            <h2>Sentiment Score: <span id="sentimentScore">{{ sentiment_score }}</span></h2>
+            <h3>Sentiment Description: <span id="sentimentDescription">{{ sentiment_description }}</span></h3>
         </div>
 
         <div class="navigation-container">
@@ -26,57 +26,39 @@
     </div>
 
     <script>
-        const sentimentScore = {{ sentiment_score }};
-        const labels = ['Positive', 'Neutral', 'Negative'];
-        const dataValues = [0, 0, 0];
+        document.addEventListener('DOMContentLoaded', function() {
+            var ctx = document.getElementById('sentimentChart').getContext('2d');
+            var sentimentScore = parseFloat(document.getElementById('sentimentScore').textContent);
+            var sentimentDescription = document.getElementById('sentimentDescription').textContent;
 
-        if (sentimentScore > 0) {
-            dataValues[0] = sentimentScore; // Positive
-        } else if (sentimentScore < 0) {
-            dataValues[2] = -sentimentScore; // Negative
-        } else {
-            dataValues[1] = 1; // Neutral
-        }
+            var positiveValue = Math.max(sentimentScore, 0);
+            var negativeValue = Math.max(-sentimentScore, 0);
+            var neutralValue = 1 - positiveValue - negativeValue;
 
-        const ctx = document.getElementById('sentimentGraph').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Sentiment Analysis',
-                    data: dataValues,
-                    backgroundColor: [
-                        'rgba(0, 123, 255, 0.6)', // Positive
-                        'rgba(255, 193, 7, 0.6)',  // Neutral
-                        'rgba(220, 53, 69, 0.6)'   // Negative
-                    ],
-                    borderColor: [
-                        'rgba(0, 123, 255, 1)', 
-                        'rgba(255, 193, 7, 1)', 
-                        'rgba(220, 53, 69, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
+            var chart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Positive', 'Neutral', 'Negative'],
+                    datasets: [{
+                        data: [positiveValue, neutralValue, negativeValue],
+                        backgroundColor: ['rgba(75, 192, 192, 0.8)', 'rgba(255, 206, 86, 0.8)', 'rgba(255, 99, 132, 0.8)'],
+                        borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 206, 86, 1)', 'rgba(255, 99, 132, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
                         title: {
                             display: true,
-                            text: 'Frequency'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Sentiment Categories'
+                            text: 'Sentiment Distribution'
                         }
                     }
                 }
-            }
+            });
         });
     </script>
 </body>
