@@ -23,12 +23,19 @@ import matplotlib.pyplot as plt
 import io
 import base64
 from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
-
+from flask import Flask, request, jsonify, session
+from transformers import pipeline
+from transformers import AutoTokenizer
 import random
 
 
 app = Flask(__name__)
 
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # Allow cookies to be sent in third-party contexts
+app.config['SESSION_COOKIE_SECURE'] = True  # Use secure cookies if your app is served over HTTPS
+
+summarizer = pipeline("summarization")
+tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-cnn")
 
 # Initialize SpaCy with only the necessary components
 nlp = spacy.load("en_core_web_sm", disable=["tagger", "parser", "lemmatizer", "attribute_ruler", "ner"])
@@ -316,6 +323,56 @@ def generate_sentiment():
     except Exception as e:
         logger.error(f"Error in generate_sentiment: {str(e)}")
         return jsonify({'error': str(e)}), 500  # Return a server error response
+    
+
+
+def split_text_into_chunks(text, max_length=1024):
+    # Tokenize the text to get token lengths
+    tokens = tokenizer.encode(text, return_tensors='pt')
+    
+    # Split tokens into chunks, ensuring each chunk does not exceed max_length
+    chunks = []
+    for i in range(0, tokens.size(1), max_length):
+        chunk = tokens[:, i:i + max_length]
+
+        # Decode chunk back to text
+        chunk_text = tokenizer.decode(chunk[0], skip_special_tokens=True)
+        
+        # Only add the chunk if its length is within the limit
+        if len(tokenizer.encode(chunk_text)) <= max_length:
+            chunks.append(chunk_text)
+
+    return chunks
+
+@app.route('/generate_summary', methods=['POST'])
+def generate_summary():
+    if 'uploaded_file' not in session:
+        return jsonify({'error': 'No file uploaded.'}), 400
+
+    uploaded_file_name = session['uploaded_file']
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], uploaded_file_name)
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            text = file.read()
+
+        chunks = split_text_into_chunks(text, max_length=1024)
+        if not chunks:
+            return jsonify({'error': 'No text to summarize.'}), 400
+
+        summaries = []
+        for chunk in chunks:
+            summary = summarizer(chunk, max_length=150, min_length=40, do_sample=False)
+            if summary:
+                summaries.append(summary[0]['summary_text'])
+            else:
+                summaries.append("No summary generated for this chunk.")
+
+        final_summary = ' '.join(summaries)
+        session['summary'] = final_summary
+        return jsonify({'summary': final_summary}), 200  # Return the summary in JSON format
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500  # Ensure this is a valid JSON response
 
 
 
@@ -365,6 +422,18 @@ def sentiment_result():
     return render_template('result_sentiment.html', 
                            sentiment_score=sentiment_score, 
                            sentiment_description=sentiment_description)
+
+
+@app.route('/result/summarizer')
+def summarizer_result():
+    summary = session.get('summary')  # Retrieve summary from session
+    if not summary:
+        return "Missing summary data", 400
+
+    return render_template('result_summary.html', summary=summary)
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

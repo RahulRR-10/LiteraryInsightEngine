@@ -45,11 +45,14 @@
                 <p>Analyze the sentiment of the text.</p>
                 <button class="utility-button" id="sentimentButton" onclick="generateSentiment()" disabled>Analyze Sentiment</button>
             </div>
-            <!-- <div class="utility-card">
-                <h2>Sentiment Analysis</h2>
-                <p>Analyze the sentiment of the text.</p>
-                <button onclick="generateSentiment()">Analyze Sentiment</button>
-              </div> -->
+            <div class="utility-card">
+                <i class="fas fa-file-alt" style="font-size: 48px; color: #4285F4;"></i>
+                <h2>Text Summarization</h2>
+                <p>Summarize the uploaded text.</p>
+                <button class="utility-button" id="summarizationButton" onclick="generateSummary()" disabled>Generate Summary</button>
+            </div>
+            
+          
         </div>
     </div>
 
@@ -98,6 +101,7 @@
             document.getElementById('wordFrequenciesButton').disabled = false;
             document.getElementById('geospatialButton').disabled = false;
             document.getElementById('sentimentButton').disabled = false;
+            document.getElementById('summarizationButton').disabled = false;
 
         }
 
@@ -150,6 +154,10 @@
             alert('Geospatial visualization generation failed: ' + error.message);
         });
 }
+
+
+
+
 function generateSentiment() {
     fetch('/generate_sentiment', {
         method: 'POST',
@@ -172,6 +180,31 @@ function generateSentiment() {
         alert('An error occurred while analyzing sentiment.');
     });
 }
+
+function generateSummary() {
+        fetch('/generate_summary', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),  // Sending an empty object as we are not sending any additional data
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);  // Handle any errors returned from the server
+            } else {
+                // Redirect to the result page with summary data as URL parameters
+                window.location.href = `/result/summary?summary=${encodeURIComponent(data.summary)}`;
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('An error occurred while generating the summary.');
+        });
+    }
+
+
 document.addEventListener('DOMContentLoaded', function() {
     // ... (other existing code)
 
