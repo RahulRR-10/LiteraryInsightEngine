@@ -1,19 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
+<!-- result_summary.html -->
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <title>Summary Result</title>
 </head>
 <body>
-    <div class="container">
-        <h1>Summary Result</h1>
-        <div class="summary-box">
-            <h2>Your Summary:</h2>
-            <p>{{ summary }}</p>
-        </div>
-        <a href="{{ url_for('index') }}" class="btn">Back to Dashboard</a>
-    </div>
+    <h1>Summary Image</h1>
+    <img src="data:image/png;base64,{{ summary_image }}" alt="Summary Image">
 </body>
 </html>

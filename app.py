@@ -27,6 +27,7 @@ from flask import Flask, request, jsonify, session
 from transformers import pipeline
 from transformers import AutoTokenizer
 import random
+from PIL import Image, ImageDraw, ImageFont
 
 
 app = Flask(__name__)
@@ -45,7 +46,9 @@ nlp.add_pipe("entity_ruler").from_disk("entity_patterns.jsonl")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
+# Helper function to split text into chunks
+def split_text_into_chunks(text, max_length=1024):
+    return [text[i:i + max_length] for i in range(0, len(text), max_length)]
 
 # Initialize the geocode cache
 geocode_cache = TTLCache(maxsize=1000, ttl=86400)
@@ -163,6 +166,45 @@ def generate_map(locations, filename):
     m.save(map_path)
     logger.info(f"Map saved to {map_path}")
     return map_path
+
+def create_image_from_text(text, width=800, height=600):
+    # Create a blank image
+    image = Image.new('RGB', (width, height), color='white')
+    draw = ImageDraw.Draw(image)
+    
+    # Use a default font
+    font = ImageFont.load_default()
+
+    # Split the text into lines
+    words = text.split()
+    lines = []
+    current_line = []
+
+    for word in words:
+        # Calculate the bounding box of the current line with the new word
+        bbox = draw.textbbox((0, 0), ' '.join(current_line + [word]), font=font)
+        line_width = bbox[2]  # bbox[2] is the width of the text
+        if line_width <= width - 20:
+            current_line.append(word)
+        else:
+            lines.append(' '.join(current_line))
+            current_line = [word]
+    lines.append(' '.join(current_line))
+
+    # Draw the text line by line
+    y_text = 10
+    for line in lines:
+        draw.text((10, y_text), line, font=font, fill=(0, 0, 0))
+        # Calculate the height of the text using textbbox()
+        bbox = draw.textbbox((0, 0), line, font=font)
+        line_height = bbox[3] - bbox[1]  # bbox[3] is bottom, bbox[1] is top
+        y_text += line_height + 5  # Add some spacing between lines
+    
+    return image
+
+
+
+
 
 @app.route('/')
 def index():
@@ -325,19 +367,22 @@ def generate_sentiment():
         return jsonify({'error': str(e)}), 500  # Return a server error response
     
 
-
 def split_text_into_chunks(text, max_length=1024):
     # Tokenize the text to get token lengths
     tokens = tokenizer.encode(text, return_tensors='pt')
-    
+
     # Split tokens into chunks, ensuring each chunk does not exceed max_length
     chunks = []
     for i in range(0, tokens.size(1), max_length):
         chunk = tokens[:, i:i + max_length]
 
+        # Check if the chunk contains any tokens
+        if chunk.size(1) == 0:
+            continue  # Skip empty chunks
+
         # Decode chunk back to text
         chunk_text = tokenizer.decode(chunk[0], skip_special_tokens=True)
-        
+
         # Only add the chunk if its length is within the limit
         if len(tokenizer.encode(chunk_text)) <= max_length:
             chunks.append(chunk_text)
@@ -353,13 +398,16 @@ def generate_summary():
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], uploaded_file_name)
 
     try:
+        # Read the file content
         with open(file_path, 'r', encoding='utf-8') as file:
             text = file.read()
 
+        # Split text into chunks
         chunks = split_text_into_chunks(text, max_length=1024)
         if not chunks:
             return jsonify({'error': 'No text to summarize.'}), 400
 
+        # Summarize each chunk
         summaries = []
         for chunk in chunks:
             summary = summarizer(chunk, max_length=150, min_length=40, do_sample=False)
@@ -368,11 +416,28 @@ def generate_summary():
             else:
                 summaries.append("No summary generated for this chunk.")
 
+        # Combine summaries into one final summary
         final_summary = ' '.join(summaries)
-        session['summary'] = final_summary
-        return jsonify({'summary': final_summary}), 200  # Return the summary in JSON format
+        
+        # Create an image from the final summary
+        summary_image = create_image_from_text(final_summary)
+        
+        # Save the image to an in-memory buffer
+        img_io = io.BytesIO()
+        summary_image.save(img_io, 'PNG')
+        img_io.seek(0)
+        img_data = base64.b64encode(img_io.getvalue()).decode()
+        
+        # Store the image data in the session
+        session['summary_image'] = img_data
+        
+        # Redirect to the summarizer result page
+        return redirect(url_for('summarizer_result'))
+
+    except FileNotFoundError:
+        return jsonify({'error': 'File not found.'}), 404
     except Exception as e:
-        return jsonify({'error': str(e)}), 500  # Ensure this is a valid JSON response
+        return jsonify({'error': str(e)}), 500
 
 
 
@@ -424,13 +489,17 @@ def sentiment_result():
                            sentiment_description=sentiment_description)
 
 
+# Route for displaying the summary image
 @app.route('/result/summarizer')
 def summarizer_result():
-    summary = session.get('summary')  # Retrieve summary from session
-    if not summary:
-        return "Missing summary data", 400
+    # Debug: Check session data
+    print("Session data:", session)
 
-    return render_template('result_summary.html', summary=summary)
+    summary_image = session.get('summary_image')
+    if not summary_image:
+        return "Missing summary image data", 400
+
+    return render_template('result_summary.html', summary_image=summary_image)
 
 
 
