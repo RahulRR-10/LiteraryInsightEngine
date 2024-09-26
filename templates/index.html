@@ -182,27 +182,24 @@ function generateSentiment() {
 }
 
 function generateSummary() {
-        fetch('/generate_summary', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({}),  // Sending an empty object as we are not sending any additional data
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error);  // Handle any errors returned from the server
-            } else {
-                // Redirect to the result page with summary data as URL parameters
-                window.location.href = `/result/summary?summary=${encodeURIComponent(data.summary)}`;
-            }
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            alert('An error occurred while generating the summary.');
-        });
-    }
+    fetch('/generate_summary', {
+        method: 'POST',
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            // Redirect to the summary result page
+            window.location.href = `/result/summarizer?image_filename=${encodeURIComponent(data.image_filename)}`;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while generating the summary.');
+    });
+}
+
 
 
 document.addEventListener('DOMContentLoaded', function() {

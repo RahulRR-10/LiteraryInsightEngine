@@ -66,22 +66,26 @@ nltk.download('stopwords', quiet=True)
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+app.secret_key = '123'  # Replace with a secure key
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'fallback_secret_key')
+app.secret_key = os.environ.get('123', 'fallback_secret_key')
 
 # Folder setup
+IMAGE_FOLDER = 'static/images/'
+os.makedirs(IMAGE_FOLDER, exist_ok=True)
 UPLOAD_FOLDER = 'uploads/'
 WORDCLOUD_FOLDER = 'static/wordclouds/'
 MAPS_FOLDER = 'static/maps/'
 for folder in [UPLOAD_FOLDER, WORDCLOUD_FOLDER, MAPS_FOLDER]:
     os.makedirs(folder, exist_ok=True)
-
 app.config.update(
     UPLOAD_FOLDER=UPLOAD_FOLDER,
     WORDCLOUD_FOLDER=WORDCLOUD_FOLDER,
-    MAPS_FOLDER=MAPS_FOLDER
+    MAPS_FOLDER=MAPS_FOLDER,
+    IMAGE_FOLDER=IMAGE_FOLDER  # Add this line
 )
+
 
 ALLOWED_EXTENSIONS = {'txt'}
 
@@ -171,7 +175,7 @@ def create_image_from_text(text, width=800, height=600):
     # Create a blank image
     image = Image.new('RGB', (width, height), color='white')
     draw = ImageDraw.Draw(image)
-    
+
     # Use a default font
     font = ImageFont.load_default()
 
@@ -179,27 +183,28 @@ def create_image_from_text(text, width=800, height=600):
     words = text.split()
     lines = []
     current_line = []
-
+    
     for word in words:
-        # Calculate the bounding box of the current line with the new word
-        bbox = draw.textbbox((0, 0), ' '.join(current_line + [word]), font=font)
-        line_width = bbox[2]  # bbox[2] is the width of the text
-        if line_width <= width - 20:
+        # Calculate the width of the current line with the new word
+        line_width = draw.textbbox((0, 0), ' '.join(current_line + [word]), font=font)[2]
+        
+        if line_width <= width - 20:  # Allow some padding
             current_line.append(word)
         else:
+            # If adding the new word exceeds the width, finalize the current line
             lines.append(' '.join(current_line))
             current_line = [word]
-    lines.append(' '.join(current_line))
+    
+    # Add any remaining words as a new line
+    if current_line:
+        lines.append(' '.join(current_line))
 
-    # Draw the text line by line
+    # Draw the text
     y_text = 10
     for line in lines:
         draw.text((10, y_text), line, font=font, fill=(0, 0, 0))
-        # Calculate the height of the text using textbbox()
-        bbox = draw.textbbox((0, 0), line, font=font)
-        line_height = bbox[3] - bbox[1]  # bbox[3] is bottom, bbox[1] is top
-        y_text += line_height + 5  # Add some spacing between lines
-    
+        y_text += draw.textbbox((0, 0), line, font=font)[3] + 5  # Use the height of the text box
+
     return image
 
 
@@ -398,16 +403,13 @@ def generate_summary():
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], uploaded_file_name)
 
     try:
-        # Read the file content
         with open(file_path, 'r', encoding='utf-8') as file:
             text = file.read()
 
-        # Split text into chunks
         chunks = split_text_into_chunks(text, max_length=1024)
         if not chunks:
             return jsonify({'error': 'No text to summarize.'}), 400
 
-        # Summarize each chunk
         summaries = []
         for chunk in chunks:
             summary = summarizer(chunk, max_length=150, min_length=40, do_sample=False)
@@ -416,29 +418,22 @@ def generate_summary():
             else:
                 summaries.append("No summary generated for this chunk.")
 
-        # Combine summaries into one final summary
         final_summary = ' '.join(summaries)
         
-        # Create an image from the final summary
+        # Create an image from the summary
         summary_image = create_image_from_text(final_summary)
         
-        # Save the image to an in-memory buffer
-        img_io = io.BytesIO()
-        summary_image.save(img_io, 'PNG')
-        img_io.seek(0)
-        img_data = base64.b64encode(img_io.getvalue()).decode()
-        
-        # Store the image data in the session
-        session['summary_image'] = img_data
-        
-        # Redirect to the summarizer result page
-        return redirect(url_for('summarizer_result'))
+        # Save the image to the IMAGE_FOLDER
+        image_filename = f'summary_image_{int(time.time())}.png'
+        image_path = os.path.join(app.config['IMAGE_FOLDER'], image_filename)
+        summary_image.save(image_path)
 
-    except FileNotFoundError:
-        return jsonify({'error': 'File not found.'}), 404
+        # Store the image filename in the session
+        session['summary_image'] = image_filename
+
+        return jsonify({'message': 'Summary generated successfully', 'image_filename': image_filename}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 
 @app.route('/result/word_frequencies')
@@ -489,18 +484,20 @@ def sentiment_result():
                            sentiment_description=sentiment_description)
 
 
-# Route for displaying the summary image
 @app.route('/result/summarizer')
 def summarizer_result():
-    # Debug: Check session data
-    print("Session data:", session)
-
-    summary_image = session.get('summary_image')
-    if not summary_image:
+    image_filename = request.args.get('image_filename')
+    if not image_filename:
         return "Missing summary image data", 400
 
-    return render_template('result_summary.html', summary_image=summary_image)
+    image_path = f'/static/images/{image_filename}'
+    return render_template('result_summary.html', image_path=image_path)
 
+
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 
 
