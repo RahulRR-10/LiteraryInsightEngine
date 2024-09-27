@@ -21,7 +21,7 @@
     </div>
 
     <script>
-        const wordFrequencies = {{ word_frequencies|tojson }};
+        const wordFrequencies = {{ word_frequencies|tojson|safe }};
         const words = Object.keys(wordFrequencies);
         const frequencies = Object.values(wordFrequencies);
 

@@ -412,13 +412,14 @@ def generate_summary():
 
         summaries = []
         for chunk in chunks:
-            summary = summarizer(chunk, max_length=150, min_length=40, do_sample=False)
+            summary = summarizer(chunk, max_length=300, min_length=100, do_sample=False)
             if summary:
                 summaries.append(summary[0]['summary_text'])
             else:
                 summaries.append("No summary generated for this chunk.")
 
-        final_summary = ' '.join(summaries)
+        intermediate_summary = ' '.join(summaries)
+        final_summary = summarizer(intermediate_summary, max_length=500, min_length=200, do_sample=False)[0]['summary_text']
         
         # Create an image from the summary
         summary_image = create_image_from_text(final_summary)
@@ -428,13 +429,19 @@ def generate_summary():
         image_path = os.path.join(app.config['IMAGE_FOLDER'], image_filename)
         summary_image.save(image_path)
 
-        # Store the image filename in the session
-        session['summary_image'] = image_filename
+        # Store the summary data in the session
+        session['summary_data'] = {
+            'image_filename': image_filename,
+            'text_summary': final_summary
+        }
 
-        return jsonify({'message': 'Summary generated successfully', 'image_filename': image_filename}), 200
+        return jsonify({
+            'message': 'Summary generated successfully', 
+            'image_filename': image_filename,
+            'text_summary': final_summary
+        }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 @app.route('/result/word_frequencies')
 def word_frequencies_result():
@@ -486,14 +493,17 @@ def sentiment_result():
 
 @app.route('/result/summarizer')
 def summarizer_result():
-    image_filename = request.args.get('image_filename')
-    if not image_filename:
-        return "Missing summary image data", 400
+    summary_data = session.get('summary_data')
+    if not summary_data:
+        return "Missing summary data", 400
 
-    image_path = f'/static/images/{image_filename}'
-    return render_template('result_summary.html', image_path=image_path)
+    image_filename = summary_data.get('image_filename')
+    text_summary = summary_data.get('text_summary')
 
+    if not image_filename or not text_summary:
+        return "Incomplete summary data", 400
 
+    return render_template('result_summary.html', image_filename=image_filename, text_summary=text_summary)
 
 
 if __name__ == '__main__':
