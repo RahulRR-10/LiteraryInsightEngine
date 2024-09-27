@@ -1,12 +1,13 @@
 <html>
 <head>
     <title>Summary Result</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
 </head>
 <body>
-    <h1>Summary Image</h1>
-    <img src="{{ url_for('static', filename='images/' + image_filename) }}" alt="Summary Image">
-    
-    <h2>Text Summary</h2>
+    <h1>Text Summary</h1>
     <p>{{ text_summary }}</p>
+    <div class="navigation-container">
+        <a href="/" class="back-button">Back to Dashboard</a>
+    </div>
 </body>
 </html>

@@ -171,41 +171,41 @@ def generate_map(locations, filename):
     logger.info(f"Map saved to {map_path}")
     return map_path
 
-def create_image_from_text(text, width=800, height=600):
-    # Create a blank image
-    image = Image.new('RGB', (width, height), color='white')
-    draw = ImageDraw.Draw(image)
+# def create_image_from_text(text, width=800, height=600):
+#     # Create a blank image
+#     image = Image.new('RGB', (width, height), color='white')
+#     draw = ImageDraw.Draw(image)
 
-    # Use a default font
-    font = ImageFont.load_default()
+#     # Use a default font
+#     font = ImageFont.load_default()
 
-    # Split the text into lines
-    words = text.split()
-    lines = []
-    current_line = []
+#     # Split the text into lines
+#     words = text.split()
+#     lines = []
+#     current_line = []
     
-    for word in words:
-        # Calculate the width of the current line with the new word
-        line_width = draw.textbbox((0, 0), ' '.join(current_line + [word]), font=font)[2]
+#     for word in words:
+#         # Calculate the width of the current line with the new word
+#         line_width = draw.textbbox((0, 0), ' '.join(current_line + [word]), font=font)[2]
         
-        if line_width <= width - 20:  # Allow some padding
-            current_line.append(word)
-        else:
-            # If adding the new word exceeds the width, finalize the current line
-            lines.append(' '.join(current_line))
-            current_line = [word]
+#         if line_width <= width - 20:  # Allow some padding
+#             current_line.append(word)
+#         else:
+#             # If adding the new word exceeds the width, finalize the current line
+#             lines.append(' '.join(current_line))
+#             current_line = [word]
     
-    # Add any remaining words as a new line
-    if current_line:
-        lines.append(' '.join(current_line))
+#     # Add any remaining words as a new line
+#     if current_line:
+#         lines.append(' '.join(current_line))
 
-    # Draw the text
-    y_text = 10
-    for line in lines:
-        draw.text((10, y_text), line, font=font, fill=(0, 0, 0))
-        y_text += draw.textbbox((0, 0), line, font=font)[3] + 5  # Use the height of the text box
+#     # Draw the text
+#     y_text = 10
+#     for line in lines:
+#         draw.text((10, y_text), line, font=font, fill=(0, 0, 0))
+#         y_text += draw.textbbox((0, 0), line, font=font)[3] + 5  # Use the height of the text box
 
-    return image
+#     return image
 
 
 
@@ -421,27 +421,18 @@ def generate_summary():
         intermediate_summary = ' '.join(summaries)
         final_summary = summarizer(intermediate_summary, max_length=500, min_length=200, do_sample=False)[0]['summary_text']
         
-        # Create an image from the summary
-        summary_image = create_image_from_text(final_summary)
-        
-        # Save the image to the IMAGE_FOLDER
-        image_filename = f'summary_image_{int(time.time())}.png'
-        image_path = os.path.join(app.config['IMAGE_FOLDER'], image_filename)
-        summary_image.save(image_path)
-
         # Store the summary data in the session
         session['summary_data'] = {
-            'image_filename': image_filename,
             'text_summary': final_summary
         }
 
         return jsonify({
             'message': 'Summary generated successfully', 
-            'image_filename': image_filename,
             'text_summary': final_summary
         }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/result/word_frequencies')
 def word_frequencies_result():
@@ -497,13 +488,12 @@ def summarizer_result():
     if not summary_data:
         return "Missing summary data", 400
 
-    image_filename = summary_data.get('image_filename')
     text_summary = summary_data.get('text_summary')
 
-    if not image_filename or not text_summary:
+    if not text_summary:
         return "Incomplete summary data", 400
 
-    return render_template('result_summary.html', image_filename=image_filename, text_summary=text_summary)
+    return render_template('result_summary.html', text_summary=text_summary)
 
 
 if __name__ == '__main__':
