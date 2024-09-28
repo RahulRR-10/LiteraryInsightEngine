@@ -27,7 +27,11 @@ from flask import Flask, request, jsonify, session
 from transformers import pipeline
 from transformers import AutoTokenizer
 import random
-from PIL import Image, ImageDraw, ImageFont
+
+
+import networkx as nx
+import plotly.graph_objects as go
+
 
 
 app = Flask(__name__)
@@ -35,20 +39,19 @@ app = Flask(__name__)
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # Allow cookies to be sent in third-party contexts
 app.config['SESSION_COOKIE_SECURE'] = True  # Use secure cookies if your app is served over HTTPS
 
-summarizer = pipeline("summarization")
-tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-cnn")
+
 
 # Initialize SpaCy with only the necessary components
 nlp = spacy.load("en_core_web_sm", disable=["tagger", "parser", "lemmatizer", "attribute_ruler", "ner"])
 nlp.add_pipe("entity_ruler").from_disk("entity_patterns.jsonl")
-
+nlp.add_pipe('sentencizer', first=True) 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Helper function to split text into chunks
-def split_text_into_chunks(text, max_length=1024):
-    return [text[i:i + max_length] for i in range(0, len(text), max_length)]
+
+
+
 
 # Initialize the geocode cache
 geocode_cache = TTLCache(maxsize=1000, ttl=86400)
@@ -113,6 +116,8 @@ def generate_word_cloud(text, filename):
     except Exception as e:
         logger.error(f"Error generating word cloud: {str(e)}")
         return None, None
+    
+
 
 def extract_locations(text):
     doc = nlp(text)
@@ -170,46 +175,6 @@ def generate_map(locations, filename):
     m.save(map_path)
     logger.info(f"Map saved to {map_path}")
     return map_path
-
-# def create_image_from_text(text, width=800, height=600):
-#     # Create a blank image
-#     image = Image.new('RGB', (width, height), color='white')
-#     draw = ImageDraw.Draw(image)
-
-#     # Use a default font
-#     font = ImageFont.load_default()
-
-#     # Split the text into lines
-#     words = text.split()
-#     lines = []
-#     current_line = []
-    
-#     for word in words:
-#         # Calculate the width of the current line with the new word
-#         line_width = draw.textbbox((0, 0), ' '.join(current_line + [word]), font=font)[2]
-        
-#         if line_width <= width - 20:  # Allow some padding
-#             current_line.append(word)
-#         else:
-#             # If adding the new word exceeds the width, finalize the current line
-#             lines.append(' '.join(current_line))
-#             current_line = [word]
-    
-#     # Add any remaining words as a new line
-#     if current_line:
-#         lines.append(' '.join(current_line))
-
-#     # Draw the text
-#     y_text = 10
-#     for line in lines:
-#         draw.text((10, y_text), line, font=font, fill=(0, 0, 0))
-#         y_text += draw.textbbox((0, 0), line, font=font)[3] + 5  # Use the height of the text box
-
-#     return image
-
-
-
-
 
 @app.route('/')
 def index():
@@ -301,28 +266,6 @@ def generate_geospatial():
         return jsonify({'error': str(e)}), 500
     
 
-# def generate_sentiment_graph(image_path, sentiment_score):
-#     import matplotlib.pyplot as plt
-
-#     plt.figure(figsize=(8, 5))
-    
-#     # Data for the sentiment visualization
-#     categories = ['Positive', 'Neutral', 'Negative']
-#     values = [0, 0, 0]
-
-#     if sentiment_score > 0:
-#         values[0] = sentiment_score  # Positive
-#     elif sentiment_score < 0:
-#         values[2] = -sentiment_score  # Negative
-#     else:
-#         values[1] = 1  # Neutral
-
-#     plt.bar(categories, values, color=['rgba(0, 123, 255, 0.6)', 'rgba(255, 193, 7, 0.6)', 'rgba(220, 53, 69, 0.6)'])
-#     plt.ylabel('Frequency')
-#     plt.title('Sentiment Analysis')
-#     plt.savefig(image_path)
-#     plt.close()
-
 
 
 @app.route('/check_uploaded_file', methods=['GET'])
@@ -372,66 +315,113 @@ def generate_sentiment():
         return jsonify({'error': str(e)}), 500  # Return a server error response
     
 
-def split_text_into_chunks(text, max_length=1024):
-    # Tokenize the text to get token lengths
-    tokens = tokenizer.encode(text, return_tensors='pt')
 
-    # Split tokens into chunks, ensuring each chunk does not exceed max_length
-    chunks = []
-    for i in range(0, tokens.size(1), max_length):
-        chunk = tokens[:, i:i + max_length]
+from flask import jsonify, session
+import os
+import networkx as nx
+import plotly.graph_objs as go
+import spacy
+from logging import getLogger
 
-        # Check if the chunk contains any tokens
-        if chunk.size(1) == 0:
-            continue  # Skip empty chunks
+nlp = spacy.load("en_core_web_sm")
+logger = getLogger(__name__)
 
-        # Decode chunk back to text
-        chunk_text = tokenizer.decode(chunk[0], skip_special_tokens=True)
-
-        # Only add the chunk if its length is within the limit
-        if len(tokenizer.encode(chunk_text)) <= max_length:
-            chunks.append(chunk_text)
-
-    return chunks
-
-@app.route('/generate_summary', methods=['POST'])
-def generate_summary():
-    if 'uploaded_file' not in session:
-        return jsonify({'error': 'No file uploaded.'}), 400
-
-    uploaded_file_name = session['uploaded_file']
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], uploaded_file_name)
-
+@app.route('/generate_character_relationships', methods=['POST'])
+def generate_character_relationships():
     try:
+        filename = session.get('uploaded_file')
+        if not filename:
+            return jsonify({'error': 'No file uploaded'}), 400
+
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        if not os.path.exists(file_path):
+            return jsonify({'error': 'File not found'}), 404    
+        
         with open(file_path, 'r', encoding='utf-8') as file:
             text = file.read()
-
-        chunks = split_text_into_chunks(text, max_length=1024)
-        if not chunks:
-            return jsonify({'error': 'No text to summarize.'}), 400
-
-        summaries = []
-        for chunk in chunks:
-            summary = summarizer(chunk, max_length=300, min_length=100, do_sample=False)
-            if summary:
-                summaries.append(summary[0]['summary_text'])
-            else:
-                summaries.append("No summary generated for this chunk.")
-
-        intermediate_summary = ' '.join(summaries)
-        final_summary = summarizer(intermediate_summary, max_length=500, min_length=200, do_sample=False)[0]['summary_text']
         
-        # Store the summary data in the session
-        session['summary_data'] = {
-            'text_summary': final_summary
-        }
-
-        return jsonify({
-            'message': 'Summary generated successfully', 
-            'text_summary': final_summary
-        }), 200
+        doc = nlp(text)
+        
+        # Extract named entities recognized as persons
+        persons = [ent.text for ent in doc.ents if ent.label_ == 'PERSON']
+        logger.debug(f"Persons found: {persons}")
+        
+        if not persons:
+            return jsonify({"error": "No persons found in the text."}), 400
+        
+        # Create a simple co-occurrence graph
+        G = nx.Graph()
+        for i, person1 in enumerate(persons):
+            for person2 in persons[i+1:]:
+                G.add_edge(person1, person2, weight=G.get_edge_data(person1, person2, {'weight': 0})['weight'] + 1)
+        
+        # Create a Plotly figure
+        pos = nx.spring_layout(G)
+        edge_trace, node_trace = create_plotly_traces(G, pos)
+        
+        # Create the figure
+        fig = go.Figure(data=[edge_trace, node_trace],
+                        layout=go.Layout(
+                            showlegend=False,
+                            hovermode='closest',
+                            margin=dict(b=0,l=0,r=0,t=0),
+                            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
+                        )
+        
+        # Save the figure
+        plot_filename = 'character_relationships.html'
+        plot_path = os.path.join('static', plot_filename)
+        fig.write_html(plot_path)
+        
+        return jsonify({"success": True, "plot_filename": plot_filename})
+    
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error generating character relationships: {str(e)}")
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
+def create_plotly_traces(G, pos):
+    edge_x, edge_y = [], []
+    for edge in G.edges():
+        x0, y0 = pos[edge[0]]
+        x1, y1 = pos[edge[1]]
+        edge_x.extend([x0, x1, None])
+        edge_y.extend([y0, y1, None])
+    
+    edge_trace = go.Scatter(
+        x=edge_x, y=edge_y,
+        line=dict(width=0.5, color='#888'),
+        hoverinfo='none',
+        mode='lines')
+    
+    node_x, node_y = zip(*pos.values())
+    node_trace = go.Scatter(
+        x=node_x, y=node_y,
+        mode='markers+text',
+        hoverinfo='text',
+        marker=dict(
+            showscale=True,
+            colorscale='YlGnBu',
+            size=10,
+            colorbar=dict(
+                thickness=15,
+                title='Node Connections',
+                xanchor='left',
+                titleside='right'
+            )
+        ),
+        text=list(pos.keys()),
+        textposition="top center"
+    )
+    
+    node_adjacencies = [len(list(G.neighbors(node))) for node in G.nodes()]
+    node_trace.marker.color = node_adjacencies
+    node_trace.marker.size = [v * 5 for v in node_adjacencies]
+    
+    return edge_trace, node_trace
+
+
 
 
 @app.route('/result/word_frequencies')
@@ -482,23 +472,22 @@ def sentiment_result():
                            sentiment_description=sentiment_description)
 
 
-@app.route('/result/summarizer')
-def summarizer_result():
-    summary_data = session.get('summary_data')
-    if not summary_data:
-        return "Missing summary data", 400
-
-    text_summary = summary_data.get('text_summary')
-
-    if not text_summary:
-        return "Incomplete summary data", 400
-
-    return render_template('result_summary.html', text_summary=text_summary)
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
+@app.route('/result/character_relationships')
+def character_relationships_result():
+    plot_filename = request.args.get('plot_filename')
+    if not plot_filename:
+        return "Missing plot filename", 400
+    
+    # Validate the filename to prevent potential security issues
+    if not plot_filename.endswith('.html') or '/' in plot_filename:
+        return "Invalid plot filename", 400
+    
+    # Check if the file exists
+    plot_path = os.path.join('static', plot_filename)
+    if not os.path.exists(plot_path):
+        return "Plot file not found", 404
+    
+    return render_template('result_character.html', plot_filename=plot_filename)
 
 
 if __name__ == '__main__':

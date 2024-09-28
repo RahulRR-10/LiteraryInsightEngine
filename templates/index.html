@@ -21,38 +21,54 @@
 
         <h2>Select Utility</h2>
         <div class="utility-container">
+            <!-- Word Cloud Utility -->
             <div class="utility-card">
                 <i class="fas fa-cloud" style="font-size: 48px; color: #4285F4;"></i>
                 <h2>Word Cloud</h2>
                 <p>Create a visual representation of word frequency.</p>
                 <button class="utility-button" id="wordCloudButton" onclick="generateWordCloud()" disabled>Generate Word Cloud</button>
             </div>
+
+            <!-- Word Frequencies Utility -->
             <div class="utility-card">
                 <i class="fas fa-chart-bar" style="font-size: 48px; color: #4285F4;"></i>
                 <h2>Word Frequencies</h2>
                 <p>View the frequency of each word in the text.</p>
                 <button class="utility-button" id="wordFrequenciesButton" onclick="generateWordFrequencies()" disabled>Generate Word Frequencies</button>
             </div>
+
+            <!-- Geospatial Visualization Utility -->
             <div class="utility-card">
                 <i class="fas fa-map-marked-alt" style="font-size: 48px; color: #4285F4;"></i>
                 <h2>Geospatial Visualization</h2>
                 <p>Visualize location data on a map.</p>
                 <button class="utility-button" id="geospatialButton" onclick="generateGeospatial()" disabled>Generate Geospatial Visualization</button>
             </div>
+
+            <!-- Sentiment Analysis Utility -->
             <div class="utility-card">
                 <i class="fas fa-smile" style="font-size: 48px; color: #4285F4;"></i>
                 <h2>Sentiment Analysis</h2>
                 <p>Analyze the sentiment of the text.</p>
                 <button class="utility-button" id="sentimentButton" onclick="generateSentiment()" disabled>Analyze Sentiment</button>
             </div>
-            <div class="utility-card">
-                <i class="fas fa-file-alt" style="font-size: 48px; color: #4285F4;"></i>
-                <h2>Text Summarization</h2>
-                <p>Summarize the uploaded text.</p>
-                <button class="utility-button" id="summarizationButton" onclick="generateSummary()" disabled>Generate Summary</button>
+
+            <!-- Character Relationships Utility -->
+            <div class="utility-card" id="characterRelationshipsCard">
+                <i class="fas fa-user-friends" style="font-size: 48px; color: #4285F4;"></i>
+                <h2>Character Relationships</h2>
+                <p>Visualize relationships between characters in the text.</p>
+                <button class="utility-button" id="characterRelationshipsButton" disabled>Generate Character Relationships</button>
             </div>
-            
-          
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <p>Generating Character Relationships...</p>
+            <div class="progress-bar">
+                <div class="progress"></div>
+            </div>
         </div>
     </div>
 
@@ -86,6 +102,7 @@
                         localStorage.setItem('uploadedFileName', uploadedFileName);
                         document.getElementById('uploadedFileInfo').textContent = `Uploaded file: ${uploadedFileName}`;
                         enableUtilityButtons();
+                        fileInput.value = '';  // Clear file input field after successful upload
                     } else {
                         alert('Upload failed: ' + data.error);
                     }
@@ -101,8 +118,7 @@
             document.getElementById('wordFrequenciesButton').disabled = false;
             document.getElementById('geospatialButton').disabled = false;
             document.getElementById('sentimentButton').disabled = false;
-            document.getElementById('summarizationButton').disabled = false;
-
+            document.getElementById('characterRelationshipsButton').disabled = false;
         }
 
         function generateWordCloud() {
@@ -122,118 +138,65 @@
             fetch('/generate_word_frequencies', { method: 'POST' })
                 .then(response => response.json())
                 .then(data => {
-                    if (data) {
-                        window.location.href = `/result/word_frequencies?word_frequencies=${encodeURIComponent(JSON.stringify(data))}`;
-                    } else {
-                        alert('Word frequencies generation failed: ' + data.error);
-                    }
+                    window.location.href = `/result/word_frequencies?word_frequencies=${encodeURIComponent(JSON.stringify(data))}`;
                 })
                 .catch(error => console.error('Error:', error));
         }
 
         function generateGeospatial() {
-    fetch('/generate_geospatial', { method: 'POST' })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(err.error || 'Geospatial visualization generation failed');
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Geospatial data:', data);  // Log the data received
-            if (data.map_filename) {
-                window.location.href = `/result/geospatial?map_filename=${encodeURIComponent(data.map_filename)}`;
-            } else {
-                alert('Geospatial visualization generation failed: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Geospatial visualization generation failed: ' + error.message);
-        });
-}
-
-
-
-
-function generateSentiment() {
-    fetch('/generate_sentiment', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),  // We're not sending any data, as the server will use the file from the session
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert(data.error);
-        } else {
-            // Redirect to the result page with sentiment data as URL parameters
-            window.location.href = `/result/sentiment?sentiment_score=${data.sentiment_score}&sentiment_description=${encodeURIComponent(data.sentiment_description)}&image=${encodeURIComponent(data.image)}`;
+            fetch('/generate_geospatial', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.map_filename) {
+                        window.location.href = `/result/geospatial?map_filename=${data.map_filename}`;
+                    } else {
+                        alert('Geospatial visualization failed: ' + data.error);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
         }
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-        alert('An error occurred while analyzing sentiment.');
-    });
-}
 
-function generateSummary() {
-    fetch('/generate_summary', {
-        method: 'POST',
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert(data.error);
-        } else {
-            // Redirect to the summary result page
-            window.location.href = `/result/summarizer?image_filename=${encodeURIComponent(data.image_filename)}`;
+        function generateSentiment() {
+            fetch('/generate_sentiment', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    window.location.href = `/result/sentiment?sentiment_score=${data.sentiment_score}&sentiment_description=${data.sentiment_description}`;
+                })
+                .catch(error => console.error('Error:', error));
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while generating the summary.');
-    });
-}
 
+        function generateCharacterRelationships() {
+            document.getElementById('loadingOverlay').style.display = 'block';
 
-
-document.addEventListener('DOMContentLoaded', function() {
-    // ... (other existing code)
-
-    document.querySelector('.utility-card:nth-child(4) button').addEventListener('click', function() {
-        // Check if a file has been uploaded
-        fetch('/check_uploaded_file')
-            .then(response => response.json())
-            .then(data => {
-                if (data.file_uploaded) {
-                    // File is uploaded, proceed with sentiment analysis
-                    return fetch('/generate_sentiment', { method: 'POST' });
-                } else {
-                    throw new Error('Please upload a file first.');
-                }
+            fetch('/generate_character_relationships', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             })
             .then(response => response.json())
             .then(data => {
+                document.getElementById('loadingOverlay').style.display = 'none';
+
                 if (data.error) {
                     alert('Error: ' + data.error);
-                } else {
-                    window.location.href = '/result/sentiment?sentiment_score=' + data.sentiment_score + '&sentiment_description=' + data.sentiment_description;
+                } else if (data.plot_filename) {
+                    window.location.href = '/result/character_relationships?plot_filename=' + data.plot_filename;
                 }
             })
-            .catch(error => {
+            .catch((error) => {
+                document.getElementById('loadingOverlay').style.display = 'none';
                 console.error('Error:', error);
-                alert(error.message || 'An error occurred while analyzing sentiment.');
+                alert('An error occurred while generating character relationships.');
             });
-    });
-});
+        }
 
-
-
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const characterRelationshipsButton = document.getElementById('characterRelationshipsButton');
+            if (characterRelationshipsButton) {
+                characterRelationshipsButton.addEventListener('click', generateCharacterRelationships);
+            }
+        });
     </script>
 </body>
 </html>
