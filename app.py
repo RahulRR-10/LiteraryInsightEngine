@@ -27,18 +27,29 @@ from flask import Flask, request, jsonify, session
 from transformers import pipeline
 from transformers import AutoTokenizer
 import random
-
+import openai
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 
 import networkx as nx
 import plotly.graph_objects as go
-
+from dotenv import load_dotenv
 
 
 app = Flask(__name__)
 
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # Allow cookies to be sent in third-party contexts
 app.config['SESSION_COOKIE_SECURE'] = True  # Use secure cookies if your app is served over HTTPS
+load_dotenv()
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_KEY")
+AZURE_OPENAI_MODEL = os.getenv("AZURE_OPENAI_MODEL", "gpt-35-turbo")
 
+
+openai.api_type = "azure"
+openai.api_base = AZURE_OPENAI_ENDPOINT
+openai.api_version = "2024-05-01-preview"  # Update this to the latest API version
+openai.api_key = AZURE_OPENAI_KEY
 
 
 # Initialize SpaCy with only the necessary components
@@ -194,6 +205,26 @@ def upload_file():
         return jsonify({'message': 'File uploaded successfully', 'filename': filename}), 200
     else:
         return jsonify({'error': 'Invalid file type'}), 400
+    
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    user_message = request.json['message']
+    
+    try:
+        response = openai.ChatCompletion.create(
+            engine=AZURE_OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a helpful literary assistant."},
+                {"role": "user", "content": user_message}
+            ]
+        )
+        
+        bot_response = response.choices[0].message['content']
+        return jsonify({"response": bot_response})
+    except Exception as e:
+        logger.error(f"Error in chat: {str(e)}")
+        return jsonify({"error": "An error occurred while processing your request."}), 500
 
 @app.route('/generate_wordcloud', methods=['POST'])
 def generate_wordcloud():
@@ -316,12 +347,12 @@ def generate_sentiment():
     
 
 
-from flask import jsonify, session
-import os
-import networkx as nx
-import plotly.graph_objs as go
-import spacy
-from logging import getLogger
+# from flask import jsonify, session
+# import os
+# import networkx as nx
+# import plotly.graph_objs as go
+# import spacy
+# from logging import getLogger 
 
 nlp = spacy.load("en_core_web_sm")
 logger = getLogger(__name__)

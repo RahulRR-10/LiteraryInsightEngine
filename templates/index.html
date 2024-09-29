@@ -60,6 +60,15 @@
                 <p>Visualize relationships between characters in the text.</p>
                 <button class="utility-button" id="characterRelationshipsButton" disabled>Generate Character Relationships</button>
             </div>
+            <div class="chat-container">
+                <h2>Literary Bot</h2>
+                <div id="chat-messages"></div>
+                <div class="chat-input">
+                    <input type="text" id="user-input" placeholder="Ask about literature...">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            
+        </div>
         </div>
     </div>
 
@@ -71,7 +80,7 @@
             </div>
         </div>
     </div>
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         let uploadedFileName = '';
 
@@ -120,7 +129,37 @@
             document.getElementById('sentimentButton').disabled = false;
             document.getElementById('characterRelationshipsButton').disabled = false;
         }
+        function sendMessage() {
+            var userInput = $('#user-input').val();
+            if (userInput.trim() === '') return;
 
+            // Display user message
+            $('#chat-messages').append('<p><strong>You:</strong> ' + userInput + '</p>');
+            $('#user-input').val('');
+
+            // Send request to server
+            $.ajax({
+                url: '/chat',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ message: userInput }),
+                success: function(response) {
+                    // Display bot response
+                    $('#chat-messages').append('<p><strong>Bot:</strong> ' + response.response + '</p>');
+                },
+                error: function() {
+                    $('#chat-messages').append('<p><strong>Error:</strong> Failed to get response</p>');
+                }
+            });
+        }
+
+        // Allow sending message with Enter key
+        $('#user-input').keypress(function(e) {
+            if (e.which == 13) {
+                sendMessage();
+                return false;
+            }
+        });
         function generateWordCloud() {
             fetch('/generate_wordcloud', { method: 'POST' })
                 .then(response => response.json())
