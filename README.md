@@ -1,7 +1,8 @@
-Literary Insight Engine
+# Literary Insight Engine
 
-The Literary Insight Engine is a powerful text analysis tool designed for literature students, researchers, and enthusiasts. This tool offers a variety of features, allowing users to upload texts and explore different utilities like word clouds, sentiment analysis, topic modeling, character relationship visualization, and geospatial mapping.
-Table of Contents
+The Literary Insight Engine is a powerful text analysis tool designed for literature students, researchers, and enthusiasts. This tool offers a variety of features, allowing users to upload texts and explore different utilities like word clouds, sentiment analysis, character relationship visualization, and geospatial mapping.
+
+## Table of Contents
 
     Features
     Installation
@@ -10,9 +11,8 @@ Table of Contents
     Folder Structure
     Future Enhancements
     Contributing
-    License
-
-Features
+    
+## Features
 
 The Literary Insight Engine provides the following features:
 
@@ -23,12 +23,12 @@ The Literary Insight Engine provides the following features:
     Geospatial Visualization: Map the locations mentioned in the text using geolocation data.
     Translation Utility: Translate sections of text into other languages using the integrated translation service.
 
-Installation
+## Installation
 
 To get started with the Literary Insight Engine, follow these steps:
 
 Clone the repository:
-git clone https://github.com/rahulrr-10/literary-insight-engine.git
+git clone [git@github.com:RahulRR-10/LiteraryInsightEngine.git](https://github.com/RahulRR-10/LiteraryInsightEngine.git)
 cd LiteraryInsightEngine
 
 Install the required dependencies:
@@ -49,37 +49,40 @@ Run the application:
 flask run
 
 
-#Folder Structure
+## Folder Structure
 
 The project follows a structured folder organization:
 
-your_project_root/
+```
+your_project/
 ├── backend/
-│   ├── app.py
+│   ├── app.py                 // Main Flask app file
 │   ├── static/
-│   │   └── wordclouds/
+│   │   └── wordclouds/         // Generated word clouds
 │   ├── templates/
-│   │   └── all_results.html
-│   ├── uploads/
-│   └── requirements.txt
+│   │   └── all_results.html    // HTML template for displaying results
+│   ├── uploads/                // Directory for uploaded text files
+│   └── requirements.txt        // Python dependencies
 ├── frontend/
-│   ├── public/
+│   ├── public/                 // Public folder for frontend assets
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── FileUpload.js
-│   │   │   ├── UtilitySelector.js
-│   │   │   ├── WordCloud.js
-│   │   │   └── ResultsViewer.js
-│   │   ├── App.js
-│   │   └── index.js
-│   ├── package.json
-│   └── .env
-├── .gitignore
-└── README.md
+│   │   ├── components/         // React components
+│   │   │   ├── FileUpload.js   // Component for file upload
+│   │   │   ├── UtilitySelector.js // Component for selecting text utilities
+│   │   │   ├── WordCloud.js    // Component for displaying word clouds
+│   │   │   └── ResultsViewer.js // Component for displaying results
+│   │   ├── App.js              // Main App component
+│   │   └── index.js            // Entry point for React app
+│   ├── package.json            // Node.js dependencies
+│   └── .env                    // Environment variables for React
+├── .gitignore                  // Files to ignore in git
+└── README.md                   // Project documentation
+
+```
 
 
 
-#Usage
+## Usage
 
     Upload a text file on the Dashboard.
     Select a utility (e.g., Word Cloud, Sentiment Analysis, Geospatial Mapping) from the available options.
@@ -98,7 +101,7 @@ Geospatial Mapping
 
     Visualize the locations mentioned in your text on an interactive map, allowing you to explore the geographical aspect of literature.
 
-#UI Upgrade: React Integration
+# UI Upgrade: React Integration
 
 The Literary Insight Engine is getting an improved, modern, and responsive UI by integrating React. This update aims to enhance user interactivity and provide a more streamlined experience.
 
@@ -112,7 +115,7 @@ With the React upgrade, users can expect:
 We are continuously working to refine the user experience, and this React integration will make the Literary Insight Engine more intuitive and powerful.
 
 
-Future Enhancements
+## Future Enhancements
 
     Enhanced Topic Modeling: Deeper insights using more advanced algorithms.
     Stylometry: Authorial style comparison and visualization.
@@ -120,7 +123,7 @@ Future Enhancements
     More Interactive Visualizations: Continued improvements to charts and visualizations with Plotly and D3.js.
     Chatbot Feature: Integrating Azure OpenAI for a literary-focused chatbot to provide deeper insights and answers based on the uploaded text.
 
-Contributing
+## Contributing
 
 We welcome contributions to the Literary Insight Engine! Please follow these steps:
 
