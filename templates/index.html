@@ -8,78 +8,78 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Literary Insight Engine</h1>
+    <div class="main-container">
+        <!-- Left Column: Utilities Section -->
+        <div class="left-column">
+            <h1>Literary Insight Engine</h1>
 
-        <h2>Upload Text File</h2>
-        <form id="uploadForm">
-            <input type="file" id="fileInput" accept=".txt" required>
-            <button type="button" class="utility-button" onclick="uploadFile()">Upload</button>
-        </form>
+            <!-- Upload Section -->
+            <h2>Upload Text File</h2>
+            <form id="uploadForm">
+                <input type="file" id="fileInput" accept=".txt" required>
+                <button type="button" class="utility-button" onclick="uploadFile()">Upload</button>
+            </form>
+            <div id="uploadedFileInfo">No file uploaded yet.</div>
 
-        <div id="uploadedFileInfo">No file uploaded yet.</div>
-
-        <h2>Select Utility</h2>
-        <div class="utility-container">
-            <!-- Word Cloud Utility -->
-            <div class="utility-card">
-                <i class="fas fa-cloud" style="font-size: 48px; color: #4285F4;"></i>
-                <h2>Word Cloud</h2>
-                <p>Create a visual representation of word frequency.</p>
-                <button class="utility-button" id="wordCloudButton" onclick="generateWordCloud()" disabled>Generate Word Cloud</button>
-            </div>
-
-            <!-- Word Frequencies Utility -->
-            <div class="utility-card">
-                <i class="fas fa-chart-bar" style="font-size: 48px; color: #4285F4;"></i>
-                <h2>Word Frequencies</h2>
-                <p>View the frequency of each word in the text.</p>
-                <button class="utility-button" id="wordFrequenciesButton" onclick="generateWordFrequencies()" disabled>Generate Word Frequencies</button>
-            </div>
-
-            <!-- Geospatial Visualization Utility -->
-            <div class="utility-card">
-                <i class="fas fa-map-marked-alt" style="font-size: 48px; color: #4285F4;"></i>
-                <h2>Geospatial Visualization</h2>
-                <p>Visualize location data on a map.</p>
-                <button class="utility-button" id="geospatialButton" onclick="generateGeospatial()" disabled>Generate Geospatial Visualization</button>
-            </div>
-
-            <!-- Sentiment Analysis Utility -->
-            <div class="utility-card">
-                <i class="fas fa-smile" style="font-size: 48px; color: #4285F4;"></i>
-                <h2>Sentiment Analysis</h2>
-                <p>Analyze the sentiment of the text.</p>
-                <button class="utility-button" id="sentimentButton" onclick="generateSentiment()" disabled>Analyze Sentiment</button>
-            </div>
-
-            <!-- Character Relationships Utility -->
-            <div class="utility-card" id="characterRelationshipsCard">
-                <i class="fas fa-user-friends" style="font-size: 48px; color: #4285F4;"></i>
-                <h2>Character Relationships</h2>
-                <p>Visualize relationships between characters in the text.</p>
-                <button class="utility-button" id="characterRelationshipsButton" disabled>Generate Character Relationships</button>
-            </div>
-            <div class="chat-container">
-                <h2>Literary Bot</h2>
-                <div id="chat-messages"></div>
-                <div class="chat-input">
-                    <input type="text" id="user-input" placeholder="Ask about literature...">
-                    <button onclick="sendMessage()">Send</button>
+            <!-- Utilities Section -->
+            <h2>Select Utility</h2>
+            <div class="utility-container">
+                <!-- Word Cloud Utility -->
+                <div class="utility-card">
+                    <i class="fas fa-cloud"></i>
+                    <h3>Word Cloud</h3>
+                    <p>Create a visual representation of word frequency.</p>
+                    <button class="utility-button" id="wordCloudButton" onclick="generateWordCloud()" disabled>Generate Word Cloud</button>
                 </div>
-            
-        </div>
-        </div>
-    </div>
 
-    <div id="loadingOverlay" class="loading-overlay">
-        <div class="loading-spinner">
-            <p>Generating Character Relationships...</p>
-            <div class="progress-bar">
-                <div class="progress"></div>
+                <!-- Word Frequencies Utility -->
+                <div class="utility-card">
+                    <i class="fas fa-chart-bar"></i>
+                    <h3>Word Frequencies</h3>
+                    <p>View the frequency of each word in the text.</p>
+                    <button class="utility-button" id="wordFrequenciesButton" onclick="generateWordFrequencies()" disabled>Generate Word Frequencies</button>
+                </div>
+
+                <!-- Geospatial Visualization Utility -->
+                <div class="utility-card">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <h3>Geospatial Visualization</h3>
+                    <p>Visualize location data on a map.</p>
+                    <button class="utility-button" id="geospatialButton" onclick="generateGeospatial()" disabled>Generate Geospatial Visualization</button>
+                </div>
+
+                <!-- Sentiment Analysis Utility -->
+                <div class="utility-card">
+                    <i class="fas fa-smile"></i>
+                    <h3>Sentiment Analysis</h3>
+                    <p>Analyze the sentiment of the text.</p>
+                    <button class="utility-button" id="sentimentButton" onclick="generateSentiment()" disabled>Analyze Sentiment</button>
+                </div>
+
+                <!-- Character Relationships Utility -->
+                <div class="utility-card" id="characterRelationshipsCard">
+                    <i class="fas fa-user-friends"></i>
+                    <h3>Character Relationships</h3>
+                    <p>Visualize relationships between characters in the text.</p>
+                    <button class="utility-button" id="characterRelationshipsButton" disabled>Generate Character Relationships</button>
+                </div>
+            </div>
+
+            <!-- Chatbot Section -->
+            <div class="chat-section">
+                <h2>Literary Bot</h2>
+                <div class="chat-container">
+                    <div id="chat-messages"></div>
+                    <div class="chat-input">
+                        <input type="text" id="user-input" placeholder="Ask about literature...">
+                        <button onclick="sendMessage()">Send</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- JavaScript Code -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         let uploadedFileName = '';
@@ -111,7 +111,7 @@
                         localStorage.setItem('uploadedFileName', uploadedFileName);
                         document.getElementById('uploadedFileInfo').textContent = `Uploaded file: ${uploadedFileName}`;
                         enableUtilityButtons();
-                        fileInput.value = '';  // Clear file input field after successful upload
+                        fileInput.value = ''; // Clear file input field after successful upload
                     } else {
                         alert('Upload failed: ' + data.error);
                     }
@@ -129,6 +129,7 @@
             document.getElementById('sentimentButton').disabled = false;
             document.getElementById('characterRelationshipsButton').disabled = false;
         }
+
         function sendMessage() {
             var userInput = $('#user-input').val();
             if (userInput.trim() === '') return;
@@ -145,7 +146,7 @@
                 data: JSON.stringify({ message: userInput }),
                 success: function(response) {
                     // Display bot response
-                    $('#chat-messages').append('<p><strong>Bot:</strong> ' + response.response + '</p>');
+                    $('#chat-messages').append('<p><strong>LitBot:</strong> ' + response.response + '</p>');
                 },
                 error: function() {
                     $('#chat-messages').append('<p><strong>Error:</strong> Failed to get response</p>');
@@ -153,13 +154,13 @@
             });
         }
 
-        // Allow sending message with Enter key
         $('#user-input').keypress(function(e) {
             if (e.which == 13) {
                 sendMessage();
                 return false;
             }
         });
+
         function generateWordCloud() {
             fetch('/generate_wordcloud', { method: 'POST' })
                 .then(response => response.json())

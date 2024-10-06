@@ -1,126 +1,137 @@
 /* General Body Styles */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4; /* Light gray background */
-    margin: 0; /* Remove default margin */
-    padding: 20px; /* Padding around the body */
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #1B1B1B, #2C2C2C); /* Gradient background */
+    margin: 0;
+    padding: 20px;
+    color: #E0E0E0;
 }
 
 /* Main Container Styles */
 .container {
-    max-width: 1000px; /* Increase max width for a larger container */
-    margin: 0 auto; /* Center the container */
-    padding: 30px; /* Increase padding for more space inside the container */
-    border-radius: 8px; /* Rounded corners */
-    background-color: #fff; /* White background */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 30px;
+    border-radius: 12px; /* Enhanced rounded corners */
+    background: rgba(58, 58, 58, 0.9); /* Semi-transparent background */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); /* Deeper shadow for depth */
 }
 
 /* Main Heading Styles */
 h1 {
-    color: #333; /* Dark gray color for headings */
-    text-align: center; /* Center the main heading */
-    margin-bottom: 20px; /* Space below the heading */
+    color: #FFCC00; /* Bright yellow for main headings */
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 2.5em; /* Increased font size */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6); /* Shadow for text depth */
 }
 
 /* Subheading Styles */
 h2 {
-    color: #555; /* Medium gray for subheadings */
-    margin-bottom: 15px; /* Space below subheading */
+    color: #F39C12; /* Bright orange for subheadings */
+    margin-bottom: 15px;
+    font-size: 1.8em; /* Larger subheading size */
+    text-align: center; /* Centered subheading */
 }
 
 /* Form Styles */
 form {
-    background: #ffffff; /* White background for forms */
-    padding: 20px; /* Padding inside the form */
-    border-radius: 8px; /* Rounded corners for form */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-    margin-bottom: 20px; /* Space below the form */
+    background: rgba(68, 68, 68, 0.8); /* Semi-transparent background for forms */
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    margin-bottom: 20px;
 }
 
 /* Input Styles */
 input[type="file"] {
-    margin-bottom: 10px; /* Space below the file input */
+    margin-bottom: 10px;
 }
 
 /* Utility Section Styles */
 .utility-container {
     display: flex;
-    flex-wrap: wrap; /* Allows buttons to wrap on small screens */
-    justify-content: center; /* Center the utility cards */
-    gap: 20px; /* Space between cards */
-    margin-top: 30px; /* Space above the utility section */
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 30px;
 }
 
 .utility-card {
-    background-color: #fff; /* White background */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Shadow for depth */
-    padding: 20px; /* Padding inside the card */
-    text-align: center; /* Center-align text */
-    max-width: 300px; /* Limit card width */
-    flex: 1 1 auto; /* Allow flexibility */
+    background: linear-gradient(135deg, #444, #555); /* Gradient background for cards */
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    text-align: center;
+    max-width: 300px;
+    flex: 1 1 auto;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
 }
 
 .utility-card:hover {
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Increase shadow on hover */
-    transform: translateY(-2px); /* Lift effect */
-    transition: box-shadow 0.3s ease, transform 0.3s ease; /* Smooth transition */
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7); /* Enhanced shadow on hover */
+    transform: translateY(-5px); /* Lift effect */
 }
 
 /* Button Base Styles */
 .utility-button,
 .back-button {
-    background-color: #4285F4; /* Google blue */
-    color: white; /* White text */
-    padding: 10px 20px; /* Padding for button */
-    border-radius: 4px; /* Slightly rounded corners */
-    border: none; /* No border */
-    cursor: pointer; /* Pointer cursor on hover */
-    font-size: 1em; /* Font size */
-    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transitions */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+    background: linear-gradient(135deg, #FF5733, #FF6F61); /* Gradient button */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px; /* Rounded corners */
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background 0.3s ease, transform 0.3s ease; /* Smooth transitions */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .utility-button:hover,
 .back-button:hover {
-    background-color: #357AE8; /* Darker blue on hover */
+    background: linear-gradient(135deg, #C0392B, #D35400); /* Darker gradient on hover */
+    transform: translateY(-2px); /* Slight lift on hover */
 }
 
 .utility-button:active,
 .back-button:active {
-    background-color: #0056b3; /* Even darker blue on click */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Reduce shadow on click */
-    transform: translateY(1px); /* Slightly lower effect on click */
+    background: linear-gradient(135deg, #A93226, #D35400); /* Even darker gradient on click */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transform: translateY(1px);
 }
 
 /* Navigation Container Styles */
 .navigation-container {
-    text-align: center; /* Center the content */
-    margin-top: 20px; /* Space above the navigation */
+    text-align: center;
+    margin-top: 20px;
 }
 
 /* File Upload Info Styles */
 #uploadedFileInfo {
-    margin-top: 15px; /* Space above the uploaded file info */
-    color: #555; /* Medium gray for text */
-    text-align: center; /* Center the text */
+    margin-top: 15px;
+    color: #E0E0E0;
+    text-align: center;
+    font-style: italic; /* Italic style for emphasis */
 }
+
 .image-container {
-    text-align: center; /* Center-align the image */
-    margin: 20px 0; /* Adds vertical space around the image */
+    text-align: center;
+    margin: 20px 0;
 }
 
 .image-container img {
-    max-width: 100%; /* Ensure the image does not exceed the container width */
-    height: auto; /* Maintain aspect ratio */
-    border-radius: 8px; /* Optional: Rounded corners for the image */
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px; /* Enhanced rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 /* Topic Title Styles */
 .topic-title {
-    font-size: 1.5em; /* Larger font size for topic titles */
-    margin: 20px 0; /* Space above and below */
+    font-size: 1.8em; /* Increased font size */
+    margin: 20px 0;
+    text-align: center; /* Center alignment */
+    color: #FFCC00; /* Bright yellow for topic titles */
 }
 
 /* Add margins to charts */
@@ -128,66 +139,17 @@ input[type="file"] {
     margin: 20px 0; /* Space around the visualization */
 }
 
-
-.navigation-container {
-    text-align: center; /* Center the navigation buttons */
-    margin-top: 20px; /* Space above the navigation */
-}
-
-.summary-image {
-    max-width: 100%;
-    height: auto;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
-}
-
-.loading-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    z-index: 1000;
-}
-.loading-spinner {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    color: white;
-}
-.progress-bar {
-    width: 200px;
-    height: 20px;
-    background-color: #f0f0f0;
-    border-radius: 10px;
-    margin-top: 10px;
-}
-.progress {
-    width: 0%;
-    height: 100%;
-    background-color: #4CAF50;
-    border-radius: 10px;
-    transition: width 0.5s;
-}
-/* Existing styles */
-/* ... */
-
 /* Chat Interface Styles */
 .chat-container {
     margin-top: 30px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    border: 1px solid #777; /* Light border */
+    border-radius: 12px; /* Enhanced rounded corners */
     overflow: hidden;
 }
 
 .chat-container h2 {
-    background-color: #4285F4;
-    color: white;
+    background: linear-gradient(135deg, #333, #444); /* Gradient background for header */
+    color: #FFCC00; /* Bright yellow text */
     padding: 10px;
     margin: 0;
 }
@@ -196,32 +158,72 @@ input[type="file"] {
     height: 300px;
     overflow-y: auto;
     padding: 10px;
-    background-color: #f9f9f9;
+    background: rgba(68, 68, 68, 0.9); /* Darker semi-transparent background */
+    border-radius: 12px; /* Rounded corners */
 }
 
 .chat-input {
     display: flex;
     padding: 10px;
-    background-color: white;
+    background: rgba(68, 68, 68, 0.9); /* Darker semi-transparent background for input */
 }
 
 .chat-input input {
     flex-grow: 1;
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 8px; /* Increased padding */
+    border: 1px solid #666; /* Medium gray border */
+    border-radius: 8px; /* Rounded corners */
 }
 
 .chat-input button {
     margin-left: 10px;
-    padding: 5px 15px;
-    background-color: #4285F4;
+    padding: 8px 15px;
+    background: linear-gradient(135deg, #FF5733, #FF6F61); /* Gradient color for button */
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px; /* Rounded corners */
     cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease; /* Smooth transitions */
 }
 
 .chat-input button:hover {
-    background-color: #357AE8;
+    background: linear-gradient(135deg, #C0392B, #D35400); /* Darker gradient on hover */
+    transform: translateY(-2px); /* Lift effect */
+}
+
+/* Loading Overlay Styles */
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* Dark overlay */
+    z-index: 1000;
+}
+
+.loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: white;
+}
+
+.progress-bar {
+    width: 200px;
+    height: 20px;
+    background-color: #444; /* Dark gray background */
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+.progress {
+    width: 0%;
+    height: 100%;
+    background-color: #4CAF50; /* Bright green */
+    border-radius: 10px;
+    transition: width 0.5s;
 }

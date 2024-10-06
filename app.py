@@ -347,12 +347,12 @@ def generate_sentiment():
     
 
 
-# from flask import jsonify, session
-# import os
-# import networkx as nx
-# import plotly.graph_objs as go
-# import spacy
-# from logging import getLogger 
+from flask import jsonify, session
+import os
+import networkx as nx
+import plotly.graph_objs as go
+import spacy
+from logging import getLogger
 
 nlp = spacy.load("en_core_web_sm")
 logger = getLogger(__name__)
