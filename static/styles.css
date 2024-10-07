@@ -1,54 +1,48 @@
-/* General Body Styles */
+/* Charcoal and Neon Theme */
 body {
     font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #1B1B1B, #2C2C2C); /* Gradient background */
+    background: linear-gradient(135deg, #121212, #212121);
     margin: 0;
     padding: 20px;
     color: #E0E0E0;
 }
 
-/* Main Container Styles */
 .container {
     max-width: 1000px;
     margin: 0 auto;
     padding: 30px;
-    border-radius: 12px; /* Enhanced rounded corners */
-    background: rgba(58, 58, 58, 0.9); /* Semi-transparent background */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); /* Deeper shadow for depth */
+    border-radius: 12px;
+    background: rgba(18, 18, 18, 0.9);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
 }
 
-/* Main Heading Styles */
 h1 {
-    color: #FFCC00; /* Bright yellow for main headings */
+    color: #BB86FC; /* Changed to a softer neon purple */
     text-align: center;
     margin-bottom: 20px;
-    font-size: 2.5em; /* Increased font size */
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6); /* Shadow for text depth */
+    font-size: 2.5em;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7); /* Softer glow */
 }
 
-/* Subheading Styles */
 h2 {
-    color: #F39C12; /* Bright orange for subheadings */
+    color: #03DAC5; /* Softer teal color */
     margin-bottom: 15px;
-    font-size: 1.8em; /* Larger subheading size */
-    text-align: center; /* Centered subheading */
+    font-size: 1.8em;
+    text-align: center;
 }
 
-/* Form Styles */
 form {
-    background: rgba(68, 68, 68, 0.8); /* Semi-transparent background for forms */
+    background: rgba(33, 33, 33, 0.8);
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     margin-bottom: 20px;
 }
 
-/* Input Styles */
 input[type="file"] {
     margin-bottom: 10px;
 }
 
-/* Utility Section Styles */
 .utility-container {
     display: flex;
     flex-wrap: wrap;
@@ -58,60 +52,79 @@ input[type="file"] {
 }
 
 .utility-card {
-    background: linear-gradient(135deg, #444, #555); /* Gradient background for cards */
+    background: rgba(33, 33, 33, 0.8);
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
     padding: 20px;
     text-align: center;
     max-width: 300px;
     flex: 1 1 auto;
-    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative; /* Added for glow effect */
+}
+
+.utility-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    background: rgba(0, 211, 196, 0.3); /* Softer glow effect */
+    z-index: -1;
+    filter: blur(10px); /* Added glow */
+    transition: opacity 0.3s ease;
+    opacity: 0;
 }
 
 .utility-card:hover {
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7); /* Enhanced shadow on hover */
-    transform: translateY(-5px); /* Lift effect */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8); /* Darker hover shadow */
+    transform: translateY(-5px);
 }
 
-/* Button Base Styles */
+.utility-card:hover::before {
+    opacity: 1; /* Show glow on hover */
+}
+
 .utility-button,
 .back-button {
-    background: linear-gradient(135deg, #FF5733, #FF6F61); /* Gradient button */
-    color: white;
+    background: linear-gradient(135deg, #BB86FC, #03DAC5); /* Softer gradient */
+    color: #121212;
     padding: 10px 20px;
-    border-radius: 8px; /* Rounded corners */
+    border-radius: 8px;
     border: none;
     cursor: pointer;
     font-size: 1em;
-    transition: background 0.3s ease, transform 0.3s ease; /* Smooth transitions */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: background 0.3s ease, transform 0.3s ease;
+    
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); /* Darker shadow */
 }
 
 .utility-button:hover,
 .back-button:hover {
-    background: linear-gradient(135deg, #C0392B, #D35400); /* Darker gradient on hover */
-    transform: translateY(-2px); /* Slight lift on hover */
+    background: linear-gradient(135deg, #03DAC5, #81D4FA); /* Softer hover gradient */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6); /* Darker hover shadow */
 }
 
 .utility-button:active,
 .back-button:active {
-    background: linear-gradient(135deg, #A93226, #D35400); /* Even darker gradient on click */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #018786, #B00020);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Darker active shadow */
     transform: translateY(1px);
 }
 
-/* Navigation Container Styles */
 .navigation-container {
     text-align: center;
     margin-top: 20px;
 }
 
-/* File Upload Info Styles */
 #uploadedFileInfo {
     margin-top: 15px;
     color: #E0E0E0;
     text-align: center;
-    font-style: italic; /* Italic style for emphasis */
+    font-style: italic;
 }
 
 .image-container {
@@ -122,34 +135,31 @@ input[type="file"] {
 .image-container img {
     max-width: 100%;
     height: auto;
-    border-radius: 12px; /* Enhanced rounded corners */
+    border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
-/* Topic Title Styles */
 .topic-title {
-    font-size: 1.8em; /* Increased font size */
+    font-size: 1.8em;
     margin: 20px 0;
-    text-align: center; /* Center alignment */
-    color: #FFCC00; /* Bright yellow for topic titles */
+    text-align: center;
+    color: #BB86FC; /* Softer purple */
 }
 
-/* Add margins to charts */
 #vis {
-    margin: 20px 0; /* Space around the visualization */
+    margin: 20px 0;
 }
 
-/* Chat Interface Styles */
 .chat-container {
     margin-top: 30px;
-    border: 1px solid #777; /* Light border */
-    border-radius: 12px; /* Enhanced rounded corners */
+    border: 1px solid #BB86FC;
+    border-radius: 12px;
     overflow: hidden;
 }
 
 .chat-container h2 {
-    background: linear-gradient(135deg, #333, #444); /* Gradient background for header */
-    color: #FFCC00; /* Bright yellow text */
+    background: linear-gradient(135deg, #212121, #BB86FC);
+    color: #E0E0E0;
     padding: 10px;
     margin: 0;
 }
@@ -158,72 +168,46 @@ input[type="file"] {
     height: 300px;
     overflow-y: auto;
     padding: 10px;
-    background: rgba(68, 68, 68, 0.9); /* Darker semi-transparent background */
-    border-radius: 12px; /* Rounded corners */
+    background: rgba(18, 18, 18, 0.9);
+    border-radius: 12px;
 }
 
 .chat-input {
     display: flex;
     padding: 10px;
-    background: rgba(68, 68, 68, 0.9); /* Darker semi-transparent background for input */
+    background: rgba(18, 18, 18, 0.9);
 }
 
 .chat-input input {
     flex-grow: 1;
-    padding: 8px; /* Increased padding */
-    border: 1px solid #666; /* Medium gray border */
-    border-radius: 8px; /* Rounded corners */
+    padding: 8px;
+    border: 1px solid #BB86FC;
+    border-radius: 8px;
+    background: rgba(33, 33, 33, 0.8);
+    color: #E0E0E0;
 }
 
 .chat-input button {
     margin-left: 10px;
     padding: 8px 15px;
-    background: linear-gradient(135deg, #FF5733, #FF6F61); /* Gradient color for button */
-    color: white;
+    background: linear-gradient(135deg, #BB86FC, #03DAC5);
+    color: #121212;
     border: none;
-    border-radius: 8px; /* Rounded corners */
+    border-radius: 8px;
     cursor: pointer;
-    transition: background 0.3s ease, transform 0.3s ease; /* Smooth transitions */
+    transition: background 0.3s ease, transform 0.3s ease;
 }
 
 .chat-input button:hover {
-    background: linear-gradient(135deg, #C0392B, #D35400); /* Darker gradient on hover */
-    transform: translateY(-2px); /* Lift effect */
+    background: linear-gradient(135deg, #03DAC5, #81D4FA); /* Softer hover gradient */
+    transform: translateY(-2px);
 }
-
-/* Loading Overlay Styles */
-.loading-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
+#plot-container {
     width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8); /* Dark overlay */
-    z-index: 1000;
-}
-
-.loading-spinner {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    color: white;
-}
-
-.progress-bar {
-    width: 200px;
-    height: 20px;
-    background-color: #444; /* Dark gray background */
-    border-radius: 10px;
-    margin-top: 10px;
-}
-
-.progress {
-    width: 0%;
-    height: 100%;
-    background-color: #4CAF50; /* Bright green */
-    border-radius: 10px;
-    transition: width 0.5s;
+    max-width: 1000px;
+    height: 70vh;
+    border: 1px solid #ddd;
+    margin: 20px auto;
+    background-color: #fff;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
 }

@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Literary Insight Engine</title>
+    <title>Literary Insight Engine (Prototype v0.191)</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="main-container">
         <!-- Left Column: Utilities Section -->
         <div class="left-column">
-            <h1>Literary Insight Engine</h1>
-
+            <h1>Literary Insight Engine (Prototype v0.191)</h1>
+            <div style="text-align: center; color: red; font-weight: bold;">
+                <i>Note: This website is currently under development. Some features may not work as expected.</i>
+            </div>
             <!-- Upload Section -->
             <h2>Upload Text File</h2>
             <form id="uploadForm">
@@ -26,41 +29,43 @@
             <div class="utility-container">
                 <!-- Word Cloud Utility -->
                 <div class="utility-card">
-                    <i class="fas fa-cloud"></i>
-                    <h3>Word Cloud</h3>
+                    <i class="fas fa-cloud" style="font-size: 48px; color: #ffffff;"></i>
+                    <h2>Word Cloud</h2>
                     <p>Create a visual representation of word frequency.</p>
                     <button class="utility-button" id="wordCloudButton" onclick="generateWordCloud()" disabled>Generate Word Cloud</button>
                 </div>
 
                 <!-- Word Frequencies Utility -->
                 <div class="utility-card">
-                    <i class="fas fa-chart-bar"></i>
-                    <h3>Word Frequencies</h3>
+                    <i class="fas fa-chart-bar" style="font-size: 48px; color: #ffffff;"></i>
+                    <h2>Word Frequencies</h2>
                     <p>View the frequency of each word in the text.</p>
                     <button class="utility-button" id="wordFrequenciesButton" onclick="generateWordFrequencies()" disabled>Generate Word Frequencies</button>
                 </div>
 
                 <!-- Geospatial Visualization Utility -->
                 <div class="utility-card">
-                    <i class="fas fa-map-marked-alt"></i>
-                    <h3>Geospatial Visualization</h3>
-                    <p>Visualize location data on a map.</p>
+                    <i class="fas fa-map-marked-alt" style="font-size: 48px; color: #ffffff;"></i>
+                    <h2>Geospatial Visualization</h2>
+                    <p>Visualize location data on a map.</p><br>
                     <button class="utility-button" id="geospatialButton" onclick="generateGeospatial()" disabled>Generate Geospatial Visualization</button>
                 </div>
 
                 <!-- Sentiment Analysis Utility -->
                 <div class="utility-card">
-                    <i class="fas fa-smile"></i>
-                    <h3>Sentiment Analysis</h3>
-                    <p>Analyze the sentiment of the text.</p>
+                    <i class="fas fa-smile " style="font-size: 48px; color: #ffffff;"></i>
+                    <h2>Sentiment Analysis</h2>
+                    <p>Analyze the sentiment of the text.
+                        
+                    </p><br>
                     <button class="utility-button" id="sentimentButton" onclick="generateSentiment()" disabled>Analyze Sentiment</button>
                 </div>
 
                 <!-- Character Relationships Utility -->
                 <div class="utility-card" id="characterRelationshipsCard">
-                    <i class="fas fa-user-friends"></i>
-                    <h3>Character Relationships</h3>
-                    <p>Visualize relationships between characters in the text.</p>
+                    <i class="fas fa-user-friends" style="font-size: 48px; color: #ffffff;"></i>
+                    <h2>Character Relationships</h2>
+                    <p>Visualize relationships between characters in the text.</p><br>
                     <button class="utility-button" id="characterRelationshipsButton" disabled>Generate Character Relationships</button>
                 </div>
             </div>
@@ -78,7 +83,7 @@
             </div>
         </div>
     </div>
-
+  
     <!-- JavaScript Code -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -204,39 +209,34 @@
                 })
                 .catch(error => console.error('Error:', error));
         }
-
         function generateCharacterRelationships() {
-            document.getElementById('loadingOverlay').style.display = 'block';
-
-            fetch('/generate_character_relationships', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('loadingOverlay').style.display = 'none';
-
-                if (data.error) {
-                    alert('Error: ' + data.error);
-                } else if (data.plot_filename) {
-                    window.location.href = '/result/character_relationships?plot_filename=' + data.plot_filename;
-                }
-            })
-            .catch((error) => {
-                document.getElementById('loadingOverlay').style.display = 'none';
-                console.error('Error:', error);
-                alert('An error occurred while generating character relationships.');
-            });
+    fetch('/generate_character_relationships', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else if (data.plot_filename) {
+            window.location.href = '/result/character_relationships?plot_filename=' + data.plot_filename;
         }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        alert('An error occurred while generating character relationships.');
+    });
+}
 
-        document.addEventListener('DOMContentLoaded', (event) => {
-            const characterRelationshipsButton = document.getElementById('characterRelationshipsButton');
-            if (characterRelationshipsButton) {
-                characterRelationshipsButton.addEventListener('click', generateCharacterRelationships);
-            }
-        });
+document.addEventListener('DOMContentLoaded', (event) => {
+    const characterRelationshipsButton = document.getElementById('characterRelationshipsButton');
+    if (characterRelationshipsButton) {
+        characterRelationshipsButton.addEventListener('click', generateCharacterRelationships);
+    }
+});
+
     </script>
 </body>
 </html>
