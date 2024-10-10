@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Literary Insight Engine (Prototype v0.191)</title>
+    <title>LIE_beta</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
@@ -29,7 +29,7 @@
             <div class="utility-container">
                 <!-- Word Cloud Utility -->
                 <div class="utility-card">
-                    <i class="fas fa-cloud" style="font-size: 48px; color: #ffffff;"></i>
+                    <i class="fas fa-cloud" style="font-size: 48px; color: #8b4513;"></i>
                     <h2>Word Cloud</h2>
                     <p>Create a visual representation of word frequency.</p>
                     <button class="utility-button" id="wordCloudButton" onclick="generateWordCloud()" disabled>Generate Word Cloud</button>
@@ -37,7 +37,7 @@
 
                 <!-- Word Frequencies Utility -->
                 <div class="utility-card">
-                    <i class="fas fa-chart-bar" style="font-size: 48px; color: #ffffff;"></i>
+                    <i class="fas fa-chart-bar" style="font-size: 48px; color: #8b4513;"></i>
                     <h2>Word Frequencies</h2>
                     <p>View the frequency of each word in the text.</p>
                     <button class="utility-button" id="wordFrequenciesButton" onclick="generateWordFrequencies()" disabled>Generate Word Frequencies</button>
@@ -45,7 +45,7 @@
 
                 <!-- Geospatial Visualization Utility -->
                 <div class="utility-card">
-                    <i class="fas fa-map-marked-alt" style="font-size: 48px; color: #ffffff;"></i>
+                    <i class="fas fa-map-marked-alt" style="font-size: 48px; color: #8b4513;"></i>
                     <h2>Geospatial Visualization</h2>
                     <p>Visualize location data on a map.</p><br>
                     <button class="utility-button" id="geospatialButton" onclick="generateGeospatial()" disabled>Generate Geospatial Visualization</button>
@@ -53,7 +53,7 @@
 
                 <!-- Sentiment Analysis Utility -->
                 <div class="utility-card">
-                    <i class="fas fa-smile " style="font-size: 48px; color: #ffffff;"></i>
+                    <i class="fas fa-smile " style="font-size: 48px; color: #8b4513;"></i>
                     <h2>Sentiment Analysis</h2>
                     <p>Analyze the sentiment of the text.
                         
@@ -63,7 +63,7 @@
 
                 <!-- Character Relationships Utility -->
                 <div class="utility-card" id="characterRelationshipsCard">
-                    <i class="fas fa-user-friends" style="font-size: 48px; color: #ffffff;"></i>
+                    <i class="fas fa-user-friends" style="font-size: 48px; color: #8b4513;"></i>
                     <h2>Character Relationships</h2>
                     <p>Visualize relationships between characters in the text.</p><br>
                     <button class="utility-button" id="characterRelationshipsButton" disabled>Generate Character Relationships</button>
@@ -235,6 +235,28 @@ document.addEventListener('DOMContentLoaded', (event) => {
     if (characterRelationshipsButton) {
         characterRelationshipsButton.addEventListener('click', generateCharacterRelationships);
     }
+});
+window.addEventListener('load', function() {
+  const pageContent = document.querySelector('.content');
+  
+  // Apply the enter animation when the page loads
+  pageContent.classList.add('page-enter');
+
+  // Detect when the user clicks on a link to navigate away
+  document.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', function(event) {
+      event.preventDefault();
+      const href = this.getAttribute('href');
+
+      // Apply the page turn animation
+      pageContent.classList.add('page-turn');
+
+      // Wait for the animation to complete, then navigate
+      setTimeout(() => {
+        window.location.href = href;
+      }, 1000); // Match the duration of the animation (1 second)
+    });
+  });
 });
 
     </script>
