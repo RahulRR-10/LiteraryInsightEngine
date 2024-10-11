@@ -10,13 +10,34 @@
     <div class="container">
         <h1>Word Cloud Result</h1>
 
+        <div class="description">
+            <p>This word cloud visually represents the frequency of words in the uploaded text. The size of each word indicates its frequency: larger words appear more frequently in the text, while smaller words appear less frequently. Use this visualization to quickly identify key themes and concepts in the content.</p>
+        </div>
+
+        <center>
         <div class="image-container">
-           <img src="{{ url_for('static', filename='wordclouds/' + image_filename) }}" alt="Word Cloud">
+            <img src="{{ url_for('static', filename='wordclouds/' + image_filename) }}" alt="Word Cloud" class="word-cloud-image">
+        </div>
+        </center>
+
+        <div class="download-container">
+            <h2>Download the Word Cloud</h2>
+            <a href="{{ url_for('static', filename='wordclouds/' + image_filename) }}" download class="download-button">Download Word Cloud Image</a>
+        </div>
+
+
+        <div class="fun-fact">
+            <h2>Fun Fact</h2>
+            <p>Did you know that the first known use of word clouds dates back to the 1990s? They were initially popularized as a visual tool for exploring text data in various fields, including education and marketing!</p>
         </div>
 
         <div class="navigation-container">
             <a href="{{ url_for('index') }}" class="back-button">Back to Dashboard</a>
         </div>
+
+        <footer>
+            <p>&copy; 2024 Literary Insight Engine. All rights reserved.</p>
+        </footer>
     </div>
 </body>
 </html>

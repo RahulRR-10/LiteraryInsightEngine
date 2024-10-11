@@ -6,37 +6,88 @@
     <title>Sentiment Analysis Result</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Add some inline styles for better appearance */
+        .container {
+            max-width: 800px; /* Center the content and limit width */
+            margin: auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .image-container {
+            width: 100%;
+            height: 400px; /* Responsive height for the chart */
+            position: relative;
+        }
+        .result-summary {
+            margin: 20px 0; /* Spacing for summary */
+        }
+        .navigation-container {
+            margin-top: 30px; /* Space above navigation */
+        }
+        .how-to-read {
+            background-color: #fff8e7; /* Light background for guidance */
+            padding: 15px;
+            text-align: left;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>Sentiment Analysis Result</h1>
+
         <div class="image-container">
-            <canvas id="sentimentChart" width="300" height="300"></canvas>
+            <canvas id="sentimentChart"></canvas>
         </div>
+
         <div class="result-summary">
             <h2>Sentiment Score: <span id="sentimentScore">{{ sentiment_score }}</span></h2>
             <h3>Sentiment Description: <span id="sentimentDescription">{{ sentiment_description }}</span></h3>
         </div>
+
+        <div class="how-to-read">
+            <h2>How to Interpret the Results</h2>
+            <ol>
+                <li><strong>Sentiment Score:</strong> A higher score indicates a more positive sentiment, while a lower score indicates negativity.</li>
+                <li><strong>Positive:</strong> Represents the portion of positive sentiment detected in the text.</li>
+                <li><strong>Neutral:</strong> Indicates the neutral sentiment level, where the text does not express strong opinions.</li>
+                <li><strong>Negative:</strong> Reflects the portion of negative sentiment in the text.</li>
+            </ol>
+        </div>
+
         <div class="navigation-container">
             <a href="{{ url_for('index') }}" class="back-button">Back to Dashboard</a>
         </div>
+        <footer>
+            <p>&copy; 2024 Literary Insight Engine. All rights reserved.</p>
+        </footer>
     </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var ctx = document.getElementById('sentimentChart').getContext('2d');
             var sentimentScore = parseFloat(document.getElementById('sentimentScore').textContent);
-            var sentimentDescription = document.getElementById('sentimentDescription').textContent;
             var positiveValue = Math.max(sentimentScore, 0);
             var negativeValue = Math.max(-sentimentScore, 0);
             var neutralValue = 1 - positiveValue - negativeValue;
+
             var chart = new Chart(ctx, {
                 type: 'pie',
                 data: {
                     labels: ['Positive', 'Neutral', 'Negative'],
                     datasets: [{
                         data: [positiveValue, neutralValue, negativeValue],
-                        backgroundColor: ['rgba(75, 192, 192, 0.8)', 'rgba(255, 206, 86, 0.8)', 'rgba(255, 99, 132, 0.8)'],
-                        borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 206, 86, 1)', 'rgba(255, 99, 132, 1)'],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.8)', 
+                            'rgba(255, 206, 86, 0.8)', 
+                            'rgba(255, 99, 132, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)', 
+                            'rgba(255, 206, 86, 1)', 
+                            'rgba(255, 99, 132, 1)'
+                        ],
                         borderWidth: 1
                     }]
                 },

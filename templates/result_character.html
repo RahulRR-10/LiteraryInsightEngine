@@ -5,28 +5,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Character Relationship Visualization</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* Add any necessary inline styles here */
+        #plot-container {
+            position: relative;
+            width: 100%;
+            height: 600px; /* Fixed height for the iframe */
+            margin: 20px 0; /* Spacing around the plot */
+        }
+        .loading-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2em;
+            color: #007bff; /* Change to match your theme */
+        }
+        .error-message {
+            color: red;
+            font-weight: bold;
+            text-align: center;
+        }
+        .how-to-read {
+            margin: 20px 0; /* Spacing around the section */
+            background-color: #fff8e7; /* Light background for contrast */
+            padding: 15px; /* Padding inside the section */
+            
+        }
+        .how-to-read h2 {
+            margin-bottom: 10px; /* Space below the heading */
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>Character Relationship Visualization</h1>
+        
+        <p>
+            This visualization shows the relationships between characters in the analyzed text. 
+            Each connection represents interactions, dialogues, or relationships that contribute to the narrative. 
+            Explore the plot to understand character dynamics better.
+        </p>
+        <center>
         <div id="plot-container">
             {% if plot_filename %}
                 <iframe src="{{ url_for('static', filename=plot_filename) }}" width="100%" height="100%" frameborder="0" title="Character Relationship Plot"></iframe>
+                <div class="loading-message" style="display: none;">Loading visualization...</div>
             {% else %}
-                <p class="error-message">No plot available. There might have been an error generating the character relationships.</p>
+                <p class="error-message">No plot available. There might have been an error generating the character relationships. Please try again or check the uploaded text.</p>
             {% endif %}
         </div>
+    </center>
+        <div class="how-to-read">
+            <h2>How to Read the Visualization</h2>
+            <ul>
+                <li><strong>Nodes:</strong> Each node represents a character. The size may indicate their prominence in the narrative.</li>
+                <li><strong>Edges:</strong> Lines connecting nodes signify relationships. Thicker lines indicate stronger relationships.</li>
+                <li><strong>Clusters:</strong> Groups of connected nodes represent character interactions, revealing dynamics in the story.</li>
+                <li><strong>Hover for Details:</strong> Hover over nodes and edges for more information about characters and their relationships.</li>
+                <li><strong>Compare:</strong> Use multiple visualizations to compare character dynamics across different sections or texts.</li>
+            </ul>
+        </div>
+
         <div class="navigation-container">
             <a href="{{ url_for('index') }}" class="back-button">Back to Dashboard</a>
         </div>
+        <footer>
+            <p>&copy; 2024 Literary Insight Engine. All rights reserved.</p>
+        </footer>
     </div>
     
     <script>
-        
-        // Add any necessary JavaScript here
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Character relationship visualization loaded');
-            // You can add more functionality here if needed
+
+            // Display loading message when the iframe is loading
+            const iframe = document.querySelector('iframe');
+            const loadingMessage = document.querySelector('.loading-message');
+
+            if (iframe) {
+                loadingMessage.style.display = 'block'; // Show loading message
+
+                iframe.onload = function() {
+                    loadingMessage.style.display = 'none'; // Hide loading message when the iframe is loaded
+                };
+            }
         });
     </script>
 </body>

@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    
     <div class="main-container">
         <!-- Left Column: Utilities Section -->
         <div class="left-column">
@@ -16,6 +17,14 @@
             <div style="text-align: center; color: red; font-weight: bold;">
                 <i>Note: This website is currently under development. Some features may not work as expected.</i>
             </div>
+            <!-- Instructions Section -->
+            <h2>How to Use</h2>
+            <p>Welcome to the Literary Insight Engine! Here's how to get started:</p>
+            <ol>
+                <li><strong>Upload a Text File:</strong> Click on the "Upload" button to select a .txt file from your device.</li>
+                <li><strong>Select a Utility:</strong> Choose from the available utilities to analyze your text.</li>
+                <li><strong>View Results:</strong> After generating results, you will be redirected to a new page to view your analysis.</li>
+            </ol>
             <!-- Upload Section -->
             <h2>Upload Text File</h2>
             <form id="uploadForm">
@@ -68,8 +77,15 @@
                     <p>Visualize relationships between characters in the text.</p><br>
                     <button class="utility-button" id="characterRelationshipsButton" disabled>Generate Character Relationships</button>
                 </div>
+                <div class="utility-card" id="zipfCard">
+                    <i class="fas fa-chart-line" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Zipf's Law Analysis</h2>
+                    <p>Graph word frequencies versus their ranks.</p><br>
+                    <button class="utility-button" id="zipfButton" onclick="generateZipfAnalysis()">Generate Zipf's Law Analysis</button>
+                </div>
             </div>
-
+            
+            
             <!-- Chatbot Section -->
             <div class="chat-section">
                 <h2>Literary Bot</h2>
@@ -82,6 +98,9 @@
                 </div>
             </div>
         </div>
+        <footer>
+            <p>&copy; 2024 Literary Insight Engine. All rights reserved.</p>
+        </footer>
     </div>
   
     <!-- JavaScript Code -->
@@ -133,6 +152,7 @@
             document.getElementById('geospatialButton').disabled = false;
             document.getElementById('sentimentButton').disabled = false;
             document.getElementById('characterRelationshipsButton').disabled = false;
+            document.getElementById('zipfButton').disabled = false;
         }
 
         function sendMessage() {
@@ -187,6 +207,31 @@
                 })
                 .catch(error => console.error('Error:', error));
         }
+        function generateZipfAnalysis() {
+    fetch('/generate_zipf', { method: 'POST' })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${text}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Server response:', data);
+            if (data.message === 'Zipf analysis completed') {
+                window.location.href = '/result/zipf';
+            } else {
+                throw new Error('Unexpected response from server: ' + JSON.stringify(data));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Zipf\'s Law analysis generation failed: ' + error.message);
+        });
+}
+
+
 
         function generateGeospatial() {
             fetch('/generate_geospatial', { method: 'POST' })

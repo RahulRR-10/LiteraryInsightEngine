@@ -11,13 +11,30 @@
     <div class="container">
         <h1>Word Frequencies</h1>
 
+        <p>
+            This chart displays the frequency of words in the analyzed text. 
+            Each bar represents a word, and its height indicates how many times that word appears.
+        </p>
+
         <div class="image-container">
             <canvas id="graph"></canvas>
+        </div>
+
+        <div class="info-container">
+            <h2>How to Read the Chart</h2>
+            <ul>
+                <li><strong>Y-Axis:</strong> Shows the frequency of words. A higher bar means the word appears more often.</li>
+                <li><strong>X-Axis:</strong> Lists the words from the analyzed text.</li>
+                <li>Hover over each bar to see the exact frequency of the corresponding word.</li>
+            </ul>
         </div>
 
         <div class="navigation-container">
             <a href="{{ url_for('index') }}" class="back-button">Back to Dashboard</a>
         </div>
+        <footer>
+            <p>&copy; 2024 Literary Insight Engine. All rights reserved.</p>
+        </footer>
     </div>
 
     <script>
@@ -52,6 +69,20 @@
                         title: {
                             display: true,
                             text: 'Words'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.raw;
+                                return label;
+                            }
                         }
                     }
                 }

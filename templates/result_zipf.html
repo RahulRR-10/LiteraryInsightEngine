@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zipf's Law Analysis Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Zipf's Law Analysis Result</h1>
+        
+        <p>
+            Zipf's Law explains that in a collection of words, the most common word occurs much more frequently than the next most common word, and this pattern continues. For example, if the word "the" appears 100 times, "of" might appear 50 times, and "and" might appear 30 times.
+        </p>
+
+        <div id="zipfPlot" class="image-container"></div>
+
+        <div class="navigation-container">
+            <a href="{{ url_for('index') }}" class="back-button">Back to Dashboard</a>
+        </div>
+
+        <div class="info-container">
+            <h2>Understanding the Graph</h2>
+            <ul>
+                <li><strong>X-Axis (Rank):</strong> Represents the rank of the words. Rank 1 is the most common word.</li>
+                <li><strong>Y-Axis (Frequency):</strong> Indicates how many times each word appears in the text.</li>
+                <li>Both axes use a logarithmic scale, which helps show large differences in frequencies more clearly.</li>
+            </ul>
+        </div>
+
+        <div class="example-container">
+            <h2>Example Data</h2>
+            <p>For example, if you analyze a piece of text, you might find:</p>
+            <ul>
+                <li><strong>Rank 1:</strong> "the" - 100 times</li>
+                <li><strong>Rank 2:</strong> "of" - 50 times</li>
+                <li><strong>Rank 3:</strong> "and" - 30 times</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        var data = {{ zipf_data | tojson | safe }};
+        var ranks = Object.keys(data).map(Number);
+        var frequencies = Object.values(data).map(Number);
+
+        var trace = {
+            x: ranks,
+            y: frequencies,
+            mode: 'markers+text', // Show markers with text labels
+            type: 'scatter',
+            text: frequencies.map(String), // Show frequency values on hover
+            textposition: 'top center', // Position of text labels
+            marker: {
+                color: 'rgba(0, 123, 255, 0.8)', // Marker color
+                size: 12, // Increase marker size
+                line: {
+                    width: 2,
+                    color: 'rgba(0, 0, 0, 0.5)' // Add a border to markers
+                }
+            }
+        };
+
+        var layout = {
+            title: "Zipf's Law Analysis",
+            xaxis: { title: 'Rank', type: 'log' },
+            yaxis: { title: 'Frequency', type: 'log' },
+            showlegend: false,
+            hovermode: 'closest', // Show closest point information on hover
+            plot_bgcolor: 'rgba(245, 245, 245, 1)', // Change background color for better visibility
+            paper_bgcolor: 'rgba(255, 255, 255, 1)', // Change paper background color
+            font: {
+                family: 'Arial, sans-serif',
+                size: 14,
+                color: '#333' // Darker font color for readability
+            }
+        };
+
+        Plotly.newPlot('zipfPlot', [trace], layout);
+    </script>
+</body>
+</html>

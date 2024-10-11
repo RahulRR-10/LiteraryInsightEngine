@@ -30,11 +30,11 @@ import random
 import openai
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
-
+import json
 import networkx as nx
 import plotly.graph_objects as go
 from dotenv import load_dotenv
-
+import traceback 
 
 app = Flask(__name__)
 
@@ -268,6 +268,35 @@ def generate_word_frequencies_endpoint():
     except Exception as e:
         logger.error(f"Error generating word frequencies: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/generate_zipf', methods=['POST'])
+def generate_zipf_analysis():
+    try:
+        filename = session.get('uploaded_file')
+        if not filename:
+            return jsonify({'error': 'No file uploaded'}), 400
+
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if not os.path.exists(file_path):
+            return jsonify({'error': f'File not found: {filename}'}), 404
+
+        with open(file_path, 'r', encoding='utf-8') as file:
+            text = file.read()
+
+        cleaned_text = clean_text(text)
+        word_frequencies = Counter(cleaned_text.split())
+
+        ranked_words = sorted(word_frequencies.items(), key=lambda x: x[1], reverse=True)
+        zipf_data = {str(rank + 1): freq for rank, (word, freq) in enumerate(ranked_words)}
+
+        session['zipf_data'] = json.dumps(zipf_data)
+
+        return jsonify({'message': 'Zipf analysis completed'}), 200
+    except Exception as e:
+        error_message = f"Error generating Zipf's Law analysis: {str(e)}\n{traceback.format_exc()}"
+        logger.error(error_message)
+        return jsonify({'error': error_message}), 500
+    
 
 @app.route('/generate_geospatial', methods=['POST'])
 def generate_geospatial():
@@ -519,6 +548,20 @@ def character_relationships_result():
         return "Plot file not found", 404
     
     return render_template('result_character.html', plot_filename=plot_filename)
+
+@app.route('/result/zipf')
+def zipf_result():
+    zipf_data_json = session.get('zipf_data')
+    if not zipf_data_json:
+        return "No Zipf's data found in session", 400
+    
+    try:
+        zipf_data = json.loads(zipf_data_json)
+    except json.JSONDecodeError as e:
+        logger.error(f"Error decoding Zipf's data from session: {str(e)}")
+        return "Invalid Zipf's data format in session", 400
+
+    return render_template('result_zipf.html', zipf_data=zipf_data)
 
 
 if __name__ == '__main__':
