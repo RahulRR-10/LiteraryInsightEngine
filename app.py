@@ -224,7 +224,7 @@ def chat():
         response = openai.ChatCompletion.create(
             engine=AZURE_OPENAI_MODEL,
             messages=[
-                {"role": "system", "content": "You are a helpful literary assistant."},
+                {"role": "system", "content": "Your name is LitBot and you are a helpful literary assistant and will provide the user with help in literature."},
                 {"role": "user", "content": user_message}
             ]
         )
