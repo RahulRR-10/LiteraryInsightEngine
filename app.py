@@ -42,6 +42,9 @@ import networkx as nx
 import plotly.graph_objs as go
 import spacy
 from logging import getLogger
+import requests
+from bs4 import BeautifulSoup
+import re
 
 app = Flask(__name__)
 
@@ -65,7 +68,7 @@ nlp.add_pipe("entity_ruler").from_disk("entity_patterns.jsonl")
 nlp.add_pipe('sentencizer', first=True) 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)x
 
 
 
@@ -137,6 +140,98 @@ def generate_word_cloud(text, filename):
         logger.error(f"Error generating word cloud: {str(e)}")
         return None, None
     
+
+@app.route('/summarize_paper', methods=['POST'])
+def summarize_paper():
+    try:
+        url = request.form.get('url')
+        if not url:
+            return jsonify({'error': 'URL is required'}), 400
+
+        # Validate URL format
+        if not re.match(r'https?://[^\s<>"]+|www\.[^\s<>"]+', url):
+            return jsonify({'error': 'Invalid URL format'}), 400
+        
+        restricted_domains = ['wiley.com', 'springer.com', 'sciencedirect.com', 'jstor.org', 'ieee.org']
+        if any(domain in url.lower() for domain in restricted_domains):
+            return jsonify({
+                'error': 'This appears to be a restricted access article. Please try one of these alternatives:',
+                'suggestions': [
+                    'Use an open access article URL',
+                    'Copy and paste the paper text directly',
+                    'Use the paper\'s DOI to find an open access version',
+                    'Check if your institution provides API access'
+                ]
+            }), 403
+
+        # Fetch the webpage content
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            error_message = str(e)
+            if '403' in error_message:
+                return jsonify({
+                    'error': 'Access to this paper is restricted. Please try an open access paper or paste the text directly.'
+                }), 403
+            return jsonify({'error': f'Failed to fetch URL: {error_message}'}), 400
+
+
+        # Parse the HTML and extract text
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Remove script and style elements
+        for script in soup(["script", "style"]):
+            script.decompose()
+
+        # Get text content
+        text = soup.get_text()
+        
+        # Clean up the text
+        lines = (line.strip() for line in text.splitlines())
+        chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+        text = ' '.join(chunk for chunk in chunks if chunk)
+
+        # Prepare the prompt for GPT
+        prompt = f"""Please provide a comprehensive summary of this research paper. Focus on:
+        1. Main objectives and research questions
+        2. Key methodology
+        3. Principal findings
+        4. Major conclusions
+        
+        Research paper text:
+        {text[:4000]}  # Limiting text length to avoid token limits
+        """
+
+        # Generate summary using Azure OpenAI
+        response = openai.ChatCompletion.create(
+            engine=AZURE_OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a helpful research assistant. Provide clear, concise summaries of academic papers."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        
+        summary = response.choices[0].message['content']
+
+        # Save summary to file
+        filename = f"summary_{int(time.time())}.txt"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(summary)
+
+        return jsonify({
+            'success': True,
+            'summary': summary,
+            'filename': filename
+        })
+
+    except Exception as e:
+        logger.error(f"Error in summarize_paper: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 
 def extract_locations(text):
@@ -652,7 +747,9 @@ def translation_result():
         app.logger.error(f"Translation error: {str(e)}")
         return jsonify({'error': 'An error occurred during translation'}), 500
 
+
 # Route to allow file download
+
 @app.route('/download/<filename>')
 def download_file(filename):
     try:
@@ -661,6 +758,17 @@ def download_file(filename):
         app.logger.error(f"Error sending file: {str(e)}")
         return jsonify({'error': 'Error downloading the file'}), 500
 
+
+@app.route('/download_summary/<filename>')
+def download_summary(filename):
+    try:
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 404
+    
+@app.route('/result_research')
+def result_research():
+    return render_template('result_research.html')
 
 
 

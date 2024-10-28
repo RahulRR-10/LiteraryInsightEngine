@@ -92,6 +92,13 @@
                     <p>Translate the uploaded text file to another language.</p>
                     <button class="utility-button" id="translate-button" onclick="redirectToTranslationPage()">Generate Translation</button>
                 </div>
+                <div class="utility-card">
+                    <i class="fas fa-file-alt" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Research Paper Summarizer</h2>
+                    <p>Generate concise summaries of research papers.</p><br>
+                    <button class="utility-button" id="summarizeButton" onclick="summarizeResearchPaper()">Summarize Paper</button>
+                </div>
+                
                 
                 
             </div>
@@ -164,6 +171,7 @@
             document.getElementById('characterRelationshipsButton').disabled = false;
             document.getElementById('zipfButton').disabled = false;
             document.getElementById('translate-button').disabled = false;
+            document.getElementById('summarizeButton').disabled = false;
         }
 
         function sendMessage() {
@@ -285,7 +293,10 @@
         alert('An error occurred while generating character relationships.');
     });
 }
-
+function summarizeResearchPaper() {
+    // Redirect to the result_research page
+    window.location.href = '/result_research';
+}
 document.addEventListener('DOMContentLoaded', (event) => {
     const characterRelationshipsButton = document.getElementById('characterRelationshipsButton');
     if (characterRelationshipsButton) {
