@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIE_beta</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    
+    <div class="main-container">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+        </div>
+        <!-- Left Column: Utilities Section -->
+        <div class="left-column">
+            <h1>Literary Insight Engine</h1>
+            <div style="text-align: center; color: red; font-weight: bold;">
+                <i>Note: This website is currently under development. Some features may not work as expected.</i>
+            </div>
+            <!-- Instructions Section -->
+            <h2>How to Use</h2>
+            <p>Welcome to the Literary Insight Engine! Here's how to get started:</p>
+            <ol>
+                <li><strong>Upload a Text File:</strong> Click on the "Upload" button to select a .txt file from your device.</li>
+                <li><strong>Select a Utility:</strong> Choose from the available utilities to analyze your text.</li>
+                <li><strong>View Results:</strong> After generating results, you will be redirected to a new page to view your analysis.</li>
+            </ol>
+            <!-- Upload Section -->
+            <h2>Upload Text File</h2>
+            <form id="uploadForm">
+                <input type="file" id="fileInput" accept=".txt" required>
+                <button type="button" class="utility-button" onclick="uploadFile()">Upload</button>
+            </form>
+            <div id="uploadedFileInfo">No file uploaded yet.</div>
+
+            <!-- Utilities Section -->
+            <h2>Select Utility</h2>
+            <div class="utility-container">
+                <!-- Word Cloud Utility -->
+                <div class="utility-card">
+                    <i class="fas fa-cloud" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Word Cloud</h2>
+                    <p>Create a visual representation of word frequency.</p>
+                    <button class="utility-button" id="wordCloudButton" onclick="generateWordCloud()" disabled>Generate Word Cloud</button>
+                </div>
+
+                <!-- Word Frequencies Utility -->
+                <div class="utility-card">
+                    <i class="fas fa-chart-bar" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Word Frequencies</h2>
+                    <p>View the frequency of each word in the text.</p>
+                    <button class="utility-button" id="wordFrequenciesButton" onclick="generateWordFrequencies()" disabled>Generate Word Frequencies</button>
+                </div>
+
+                <!-- Geospatial Visualization Utility -->
+                <div class="utility-card">
+                    <i class="fas fa-map-marked-alt" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Geospatial Visualization</h2>
+                    <p>Visualize location data on a map.</p><br>
+                    <button class="utility-button" id="geospatialButton" onclick="generateGeospatial()" disabled>Generate Geospatial Visualization</button>
+                </div>
+
+                <!-- Sentiment Analysis Utility -->
+                <div class="utility-card">
+                    <i class="fas fa-smile " style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Sentiment Analysis</h2>
+                    <p>Analyze the sentiment of the text.
+                        
+                    </p><br>
+                    <button class="utility-button" id="sentimentButton" onclick="generateSentiment()" disabled>Analyze Sentiment</button>
+                </div>
+
+                <!-- Character Relationships Utility -->
+                <div class="utility-card" id="characterRelationshipsCard">
+                    <i class="fas fa-user-friends" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Character Relationships</h2>
+                    <p>Visualize relationships between characters in the text.</p><br>
+                    <button class="utility-button" id="characterRelationshipsButton" disabled>Generate Character Relationships</button>
+                </div>
+                <div class="utility-card" id="zipfCard">
+                    <i class="fas fa-chart-line" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Zipf's Law Analysis</h2>
+                    <p>Graph word frequencies versus their ranks.</p><br>
+                    <button class="utility-button" id="zipfButton" onclick="generateZipfAnalysis()">Generate Zipf's Law Analysis</button>
+                </div>
+                <div class="utility-card">
+                    <i class="fas fa-language" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Translate</h2>
+                    <p>Translate the uploaded text file to another language.</p>
+                    <button class="utility-button" id="translate-button" onclick="redirectToTranslationPage()">Generate Translation</button>
+                </div>
+                <div class="utility-card">
+                    <i class="fas fa-file-alt" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Research Paper Summarizer</h2>
+                    <p>Generate concise summaries of research papers.</p><br>
+                    <button class="utility-button" id="summarizeButton" onclick="summarizeResearchPaper()">Summarize Paper</button>
+                </div>
+                
+                
+                
+            </div>
+            
+            
+            <!-- Chatbot Section -->
+            <div class="chat-section">
+                <h2>LitBot</h2>
+                <p>LitBot is an intelligent literacy chatbot designed to help users enhance their reading and writing skills. Available anytime, LitBot offers personalized learning experiences, from answering questions to providing vocabulary and grammar exercises. Whether you're starting out or looking to refine your skills, LitBot delivers real-time feedback and educational resources tailored to your needs, making literacy improvement fun and accessible for everyone.</p>
+                <div class="chat-container">
+                    <div id="chat-messages"></div>
+                    <div class="chat-input">
+                        <input type="text" id="user-input" placeholder="Ask about literature...">
+                        <button onclick="sendMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+       
+    </div>
+  
+    <!-- JavaScript Code -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let uploadedFileName = '';
+
+        window.onload = function() {
+            const storedFileName = localStorage.getItem('uploadedFileName');
+            if (storedFileName) {
+                uploadedFileName = storedFileName;
+                document.getElementById('uploadedFileInfo').textContent = `Uploaded file: ${uploadedFileName}`;
+                enableUtilityButtons();
+            }
+        }
+
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.filename) {
+                        uploadedFileName = data.filename;
+                        localStorage.setItem('uploadedFileName', uploadedFileName);
+                        document.getElementById('uploadedFileInfo').textContent = `Uploaded file: ${uploadedFileName}`;
+                        enableUtilityButtons();
+                        fileInput.value = ''; // Clear file input field after successful upload
+                    } else {
+                        alert('Upload failed: ' + data.error);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            } else {
+                alert('Please select a file to upload.');
+            }
+        }
+
+        function enableUtilityButtons() {
+            document.getElementById('wordCloudButton').disabled = false;
+            document.getElementById('wordFrequenciesButton').disabled = false;
+            document.getElementById('geospatialButton').disabled = false;
+            document.getElementById('sentimentButton').disabled = false;
+            document.getElementById('characterRelationshipsButton').disabled = false;
+            document.getElementById('zipfButton').disabled = false;
+            document.getElementById('translate-button').disabled = false;
+            document.getElementById('summarizeButton').disabled = false;
+        }
+
+        function sendMessage() {
+            var userInput = $('#user-input').val();
+            if (userInput.trim() === '') return;
+
+            // Display user message
+            $('#chat-messages').append('<p><strong>You:</strong> ' + userInput + '</p>');
+            $('#user-input').val('');
+
+            // Send request to server
+            $.ajax({
+                url: '/chat',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ message: userInput }),
+                success: function(response) {
+                    // Display bot response
+                    $('#chat-messages').append('<p><strong>LitBot:</strong> ' + response.response + '</p>');
+                },
+                error: function() {
+                    $('#chat-messages').append('<p><strong>Error:</strong> Failed to get response</p>');
+                }
+            });
+        }
+
+        $('#user-input').keypress(function(e) {
+            if (e.which == 13) {
+                sendMessage();
+                return false;
+            }
+        });
+
+        function generateWordCloud() {
+            fetch('/generate_wordcloud', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.image_filename) {
+                        window.location.href = `/result/word_cloud?image_filename=${data.image_filename}`;
+                    } else {
+                        alert('Word cloud generation failed: ' + data.error);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function generateWordFrequencies() {
+            fetch('/generate_word_frequencies', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    window.location.href = `/result/word_frequencies?word_frequencies=${encodeURIComponent(JSON.stringify(data))}`;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        function generateZipfAnalysis() {
+    fetch('/generate_zipf', { method: 'POST' })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${text}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Server response:', data);
+            if (data.message === 'Zipf analysis completed') {
+                window.location.href = '/result/zipf';
+            } else {
+                throw new Error('Unexpected response from server: ' + JSON.stringify(data));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Zipf\'s Law analysis generation failed: ' + error.message);
+        });
+}
+
+
+
+        function generateGeospatial() {
+            fetch('/generate_geospatial', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.map_filename) {
+                        window.location.href = `/result/geospatial?map_filename=${data.map_filename}`;
+                    } else {
+                        alert('Geospatial visualization failed: ' + data.error);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function generateSentiment() {
+            fetch('/generate_sentiment', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    window.location.href = `/result/sentiment?sentiment_score=${data.sentiment_score}&sentiment_description=${data.sentiment_description}`;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        function generateCharacterRelationships() {
+    fetch('/generate_character_relationships', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else if (data.plot_filename) {
+            window.location.href = '/result/character_relationships?plot_filename=' + data.plot_filename;
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        alert('An error occurred while generating character relationships.');
+    });
+}
+function summarizeResearchPaper() {
+    // Redirect to the result_research page
+    window.location.href = '/result_research';
+}
+document.addEventListener('DOMContentLoaded', (event) => {
+    const characterRelationshipsButton = document.getElementById('characterRelationshipsButton');
+    if (characterRelationshipsButton) {
+        characterRelationshipsButton.addEventListener('click', generateCharacterRelationships);
+    }
+});
+window.addEventListener('load', function() {
+  const pageContent = document.querySelector('.content');
+  
+  // Apply the enter animation when the page loads
+  pageContent.classList.add('page-enter');
+
+  // Detect when the user clicks on a link to navigate away
+  document.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', function(event) {
+      event.preventDefault();
+      const href = this.getAttribute('href');
+
+      // Apply the page turn animation
+      pageContent.classList.add('page-turn');
+
+      // Wait for the animation to complete, then navigate
+      setTimeout(() => {
+        window.location.href = href;
+      }, 1000); // Match the duration of the animation (1 second)
+    });
+  });
+});
+
+function redirectToTranslationPage() {
+    fetch('/check_uploaded_file', {
+        method: 'GET',
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.file_uploaded) {
+            // Redirect to the results translation page where language can be selected
+            window.location.href = '/result/translation';
+        } else {
+            // Show an error if no file has been uploaded
+            alert('Please upload a file before generating a translation.');
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        alert('An error occurred while checking the uploaded file.');
+    });
+}
+
+
+    </script>
+     <footer>
+        <p>&copy; 2024 Literary Insight Engine. All rights reserved.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Translation Result</h1>
+
+        <!-- Language Selection and Button Section -->
+        <div class="info-container">
+            <h2>Select a Language for Translation</h2>
+            <select id="languageSelect" class="form-select">
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="ja">Japanese</option>
+                <option value="ru">Russian</option>
+                <!-- Adding Indian languages -->
+                <option value="hi">Hindi</option>
+                <option value="bn">Bengali</option>
+                <option value="ta">Tamil</option>
+                <option value="te">Telugu</option>
+                <option value="kn">Kannada</option>
+            </select>
+            <button class="utility-button" onclick="generateTranslation()">Translate</button>
+        </div>
+
+        <!-- This section is dynamically shown after translation is successful -->
+        <div id="resultContainer" style="display:none; margin-top:20px;">
+            <div class="image-container">
+                <h2>Translation Successful!</h2>
+                <p id="translatedText"></p>
+                <button id="downloadButton" class="download-button">Download Translated File</button>
+            </div>
+        </div>
+
+        <!-- Understanding the Result Section -->
+        <div class="info-container">
+            <h2>Understanding the Translation</h2>
+            <p>
+                This tool translates the uploaded text file into the selected language using machine translation. 
+                Please select a language and click "Translate" to begin the translation process. Once completed, 
+                you will see the translated text and have the option to download the translated file.
+            </p>
+        </div>
+
+        <!-- Example Translation Information -->
+        <div class="example-container">
+            <h2>Example Translation Output</h2>
+            <p>For example, when translating a sentence:</p>
+            <ul>
+                <li><strong>Original:</strong> "Hello, how are you?"</li>
+                <li><strong>Spanish Translation:</strong> "Hola, ¿cómo estás?"</li>
+                <li><strong>French Translation:</strong> "Bonjour, comment ça va?"</li>
+            </ul>
+        </div>
+         <!-- Back to Dashboard Button -->
+         <div class="navigation-container">
+            <a href="{{ url_for('index') }}" class="back-button">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        function generateTranslation() {
+            const selectedLanguage = document.getElementById('languageSelect').value;
+
+            fetch('/result/translation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    language: selectedLanguage // Send the selected language
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    // Show the result section
+                    document.getElementById('resultContainer').style.display = 'block';
+
+                    // Update the translated text in the result section
+                    document.getElementById('translatedText').textContent = data.translated_text;
+
+                    // Set the download button link
+                    const downloadButton = document.getElementById('downloadButton');
+                    downloadButton.onclick = function() {
+                        window.location.href = `/download/${data.translated_filename}`;
+                    };
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('An error occurred during the translation.');
+            });
+        }
+    </script>
+    <footer>
+        <p>&copy; 2024 Literary Insight Engine. All rights reserved.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Paper Summarizer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Research Paper Summarizer</h1>
+        
+        <!-- Form Section -->
+        <div class="info-container">
+            <h2>Enter Research Paper URL</h2>
+            <form id="summaryForm">
+                <input type="url" id="url" name="url" required 
+                       placeholder="https://example.com/research-paper" class="form-select">
+                <button type="submit" id="submitButton" class="utility-button">Generate Summary</button>
+            </form>
+            <div id="loadingText" class="loading">Generating summary, please wait...</div>
+            <div id="errorMessage" class="error"></div>
+        </div>
+
+        <!-- Summary Result Section -->
+        <div id="summaryResult" style="display:none; margin-top:20px;">
+            <h2>Summary</h2>
+            <div id="summaryText"></div>
+            <button id="downloadButton" class="download-button">Download Summary</button>
+        </div>
+
+        <!-- Understanding the Tool Section -->
+        <div class="info-container">
+            <h2>Understanding the Tool</h2>
+            <p>
+                This tool summarizes the content of the research paper available at the provided URL. 
+                Please enter the URL and click "Generate Summary" to begin the process. Once completed, 
+                you will see the summary and have the option to download it.
+            </p>
+        </div>
+
+        <!-- Example Summary Information -->
+        <div class="example-container">
+            <h2>Example Summary Output</h2>
+            <p>For example, when summarizing a paper:</p>
+            <ul>
+                <li><strong>Original Paper Title:</strong> "Innovations in AI"</li>
+                <li><strong>Summary:</strong> "This paper discusses recent advancements in artificial intelligence and their implications."</li>
+            </ul>
+        </div>
+
+        <!-- Back to Dashboard Button -->
+        <div class="navigation-container">
+            <a href="{{ url_for('index') }}" class="back-button">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('summaryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitButton = document.getElementById('submitButton');
+            const loadingText = document.getElementById('loadingText');
+            const errorMessage = document.getElementById('errorMessage');
+            const summaryResult = document.getElementById('summaryResult');
+            const summaryText = document.getElementById('summaryText');
+            const downloadButton = document.getElementById('downloadButton');
+            
+            // Reset state
+            errorMessage.textContent = '';
+            summaryResult.style.display = 'none';
+            
+            // Show loading state
+            submitButton.disabled = true;
+            loadingText.style.display = 'block';
+
+            try {
+                const formData = new FormData();
+                formData.append('url', document.getElementById('url').value);
+
+                const response = await fetch('/summarize_paper', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    summaryText.textContent = data.summary;
+                    summaryResult.style.display = 'block';
+                    
+                    // Set up download button
+                    downloadButton.onclick = () => {
+                        window.location.href = `/download_summary/${data.filename}`;
+                    };
+                } else {
+                    throw new Error(data.error || 'Failed to generate summary');
+                }
+            } catch (error) {
+                errorMessage.textContent = error.message;
+            } finally {
+                submitButton.disabled = false;
+                loadingText.style.display = 'none';
+            }
+        });
+    </script>
+
+    <footer>
+        <p>&copy; 2024 Literary Insight Engine. All rights reserved.</p>
+    </footer>
+</body>
+</html>
