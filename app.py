@@ -45,6 +45,15 @@ from logging import getLogger
 import requests
 from bs4 import BeautifulSoup
 import re
+import spacy
+import re
+from textblob import TextBlob
+from collections import defaultdict
+import joblib
+import string
+# Load the trained model
+model = joblib.load('models/figurative_speech_model.pkl')
+
 
 app = Flask(__name__)
 
@@ -54,6 +63,8 @@ load_dotenv()
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_KEY")
 AZURE_OPENAI_MODEL = os.getenv("AZURE_OPENAI_MODEL", "gpt-35-turbo")
+GOOGLE_GEOCODING_API_KEY = os.getenv("GOOGLE_GEOCODING_API_KEY")
+
 
 
 openai.api_type = "azure"
@@ -68,7 +79,7 @@ nlp.add_pipe("entity_ruler").from_disk("entity_patterns.jsonl")
 nlp.add_pipe('sentencizer', first=True) 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)x
+logger = logging.getLogger(__name__)
 
 
 
@@ -124,6 +135,8 @@ def clean_text(text):
     text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
     stop_words = set(stopwords.words('english'))
     return ' '.join(word for word in text.split() if word not in stop_words)
+
+
 
 def generate_word_cloud(text, filename):
     try:
@@ -366,6 +379,83 @@ def translate():
         'translated_text': translated_text
     }), 200
 
+
+def preprocess_text(text):
+    """
+    Preprocess text by converting to lowercase and removing punctuation.
+    This should match the preprocessing done during training.
+    """
+    text = text.lower()
+    text = ''.join([char for char in text if char not in string.punctuation])
+    return text.strip()
+
+def analyze_figurative_speech(text):
+    """
+    Use the trained model to categorize figurative speech into types like similes, metaphors, personifications, etc.
+    """
+    # Split the text into sentences using spaCy
+    doc = nlp(text)
+    sentences = [sent.text for sent in doc.sents]
+
+    # Initialize categories
+    categorized_figurative_speech = {
+        "similes": [],
+        "metaphors": [],
+        "personifications": []
+    }
+
+    # Process each sentence and predict its figurative speech type
+    for sentence in sentences:
+        processed_sentence = preprocess_text(sentence)
+        
+        # Predict the figurative speech type for the sentence (assuming the model's predict method works like this)
+        prediction = model.predict([processed_sentence])  # You can adjust this based on your model
+        prediction_label = prediction[0]
+
+        # Categorize sentence based on prediction
+        if prediction_label == 'Simile':
+            categorized_figurative_speech["similes"].append(sentence)
+        elif prediction_label == 'Metaphor':
+            categorized_figurative_speech["metaphors"].append(sentence)
+        elif prediction_label == 'Personification':
+            categorized_figurative_speech["personifications"].append(sentence)
+
+    return categorized_figurative_speech
+
+@app.route('/figurative_speech', methods=['POST'])
+def figurative_speech():
+    filename = session.get('uploaded_file')
+    if not filename:
+        return jsonify({'error': 'No uploaded file found in session'}), 400
+
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    
+    try:
+        with open(filepath, 'r', encoding='utf-8') as file:
+            text = file.read()
+    except FileNotFoundError:
+        return jsonify({'error': 'Uploaded file not found'}), 404
+    except Exception as e:
+        app.logger.error(f"Error reading file: {str(e)}")
+        return jsonify({'error': 'Error reading uploaded file'}), 500
+
+    # Analyze figurative speech using the trained model
+    categorized_figurative_speech = analyze_figurative_speech(text)
+
+    # Optionally save the results to a file
+    figurative_speech_filename = f'figurative_{filename}'
+    figurative_speech_filepath = os.path.join(app.config['TRANSLATED_FOLDER'], figurative_speech_filename)
+    
+    try:
+        with open(figurative_speech_filepath, 'w', encoding='utf-8') as file:
+            for category, examples in categorized_figurative_speech.items():
+                file.write(f"{category.capitalize()}:\n")
+                file.write("\n".join(examples) + "\n\n")
+    except Exception as e:
+        app.logger.error(f"Error saving figurative speech results: {str(e)}")
+        return jsonify({'error': 'Error saving figurative speech results'}), 500
+
+    return render_template('result_figurative.html', figurative_speech=categorized_figurative_speech)
 
 @app.route('/generate_word_frequencies', methods=['POST'])
 def generate_word_frequencies_endpoint():
