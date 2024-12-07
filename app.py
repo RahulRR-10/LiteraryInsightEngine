@@ -51,7 +51,9 @@ from textblob import TextBlob
 from collections import defaultdict
 import joblib
 import string
-# Load the trained model
+
+
+
 model = joblib.load('models/figurative_speech_model.pkl')
 
 
@@ -63,7 +65,7 @@ load_dotenv()
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_KEY")
 AZURE_OPENAI_MODEL = os.getenv("AZURE_OPENAI_MODEL", "gpt-35-turbo")
-GOOGLE_GEOCODING_API_KEY = os.getenv("GOOGLE_GEOCODING_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_GEOCODING_API_KEY")
 
 
 
@@ -84,16 +86,8 @@ logger = logging.getLogger(__name__)
 
 
 
+geocode_cache = {}
 
-# Initialize the geocode cache
-geocode_cache = TTLCache(maxsize=1000, ttl=86400)
-
-# Initialize Nominatim geolocator with custom adapter and increased timeout
-geolocator = Nominatim(
-    user_agent="geoapiExercises",
-    timeout=5,
-    domain='nominatim.openstreetmap.org'
-)
 
 # Ensure NLTK stopwords are downloaded
 nltk.download('stopwords', quiet=True)
@@ -248,47 +242,63 @@ def summarize_paper():
 
 
 def extract_locations(text):
+    """
+    Extracts geographic entities (locations) from the text using SpaCy NER.
+    Geocodes only those entities classified as GPE or LOC.
+    """
     doc = nlp(text)
+    # Extract unique geographic entities (GPE and LOC)
     locations = {ent.text for ent in doc.ents if ent.label_ in ["GPE", "LOC"]}
     
-    # Additional step to catch country names that might be missed
-    potential_countries = set(text.split())  # Split the text into words
-    countries = set()
-    for loc in potential_countries:
-        if len(loc) > 1 and loc.isalpha():  # Basic filtering
-            if geocode_place(loc):
-                countries.add(loc)
+    # Geocode and validate locations
+    valid_locations = set()
+    for location in locations:
+        if geocode_place(location):  # Validate with geocoding
+            valid_locations.add(location)
+        else:
+            logger.warning(f"Invalid location skipped: {location}")
     
-    locations.update(countries)
-    
-    logger.info(f"Extracted locations: {locations}")
-    return locations
+    logger.info(f"Valid locations extracted: {valid_locations}")
+    return valid_locations
+
 
 
 def geocode_place(place, max_retries=3):
+    """
+    Geocodes a place name using the Google Maps Geocoding API.
+    """
     if place in geocode_cache:
         return geocode_cache[place]
     
     for attempt in range(max_retries):
         try:
-            location = geolocator.geocode(place, exactly_one=True)
-            if location:
-                result = (location.latitude, location.longitude)
+            url = "https://maps.googleapis.com/maps/api/geocode/json"
+            params = {"address": place, "key": GOOGLE_API_KEY}
+            response = requests.get(url, params=params)
+            response.raise_for_status()  # Raise exception for HTTP errors
+            data = response.json()
+            
+            if data["status"] == "OK":
+                location = data["results"][0]["geometry"]["location"]
+                result = (location["lat"], location["lng"])
                 geocode_cache[place] = result
                 logger.info(f"Geocoded '{place}' to {result}")
                 return result
             else:
-                logger.warning(f"Could not geocode '{place}'")
+                logger.warning(f"Could not geocode '{place}': {data['status']}")
                 return None
-        except (GeocoderTimedOut, GeocoderUnavailable) as e:
+        except requests.exceptions.RequestException as e:
             logger.warning(f"Geocoding attempt {attempt + 1} failed for '{place}': {str(e)}")
             if attempt < max_retries - 1:
-                time.sleep(1 + random.random())  # Wait for 1-2 seconds before retrying
+                time.sleep(1 + random.random())  # Wait before retrying
     
     logger.error(f"Failed to geocode '{place}' after {max_retries} attempts")
     return None
 
 def generate_map(locations, filename):
+    """
+    Generates a folium map with markers for each location.
+    """
     m = folium.Map(location=[20, 0], zoom_start=2)
     
     for location in locations:
@@ -297,7 +307,7 @@ def generate_map(locations, filename):
             folium.Marker(lat_lon, popup=location).add_to(m)
         else:
             logger.warning(f"Location '{location}' could not be geocoded.")
-        time.sleep(0.1)  # Add a small delay between geocoding requests
+        time.sleep(0.1)  # Avoid rapid API requests
 
     map_path = os.path.join(app.config['MAPS_FOLDER'], f"{filename}.html")
     m.save(map_path)
@@ -531,6 +541,9 @@ def generate_zipf_analysis():
 
 @app.route('/generate_geospatial', methods=['POST'])
 def generate_geospatial():
+    """
+    Extracts locations from the uploaded file and generates a map visualization.
+    """
     filename = session.get('uploaded_file')
     if not filename:
         return jsonify({'error': 'No file uploaded'}), 400
@@ -538,15 +551,18 @@ def generate_geospatial():
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     
     try:
+        # Read the uploaded file
         with open(file_path, 'r', encoding='utf-8') as file:
             text = file.read()
         
+        # Extract locations
         locations = extract_locations(text)
         logger.info(f"Extracted locations from {filename}: {locations}")
         
         if not locations:
             return jsonify({'message': 'No locations found in the text'}), 200
         
+        # Generate map and save it
         map_path = generate_map(locations, filename)
         if map_path:
             return jsonify({'map_filename': os.path.basename(map_path)}), 200
@@ -732,6 +748,9 @@ def word_cloud_result():
 
 @app.route('/result/geospatial')
 def geospatial_result():
+    """
+    Serves the generated map for geospatial visualization.
+    """
     map_filename = request.args.get('map_filename')
     if not map_filename:
         return "Missing map filename", 400
