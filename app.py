@@ -94,7 +94,6 @@ nltk.download('stopwords', quiet=True)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 app.secret_key = '123'  # Replace with a secure key
 
 app = Flask(__name__)
@@ -621,7 +620,6 @@ def generate_sentiment():
         logger.error(f"Error in generate_sentiment: {str(e)}")
         return jsonify({'error': str(e)}), 500  # Return a server error response
     
-
 
 
 nlp = spacy.load("en_core_web_sm")
