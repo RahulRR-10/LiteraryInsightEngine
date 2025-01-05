@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geospatial Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Geospatial Visualization</h1>
+        
+        <!-- Adding description -->
+        <p>Welcome to the Geospatial Visualization tool. This interactive map allows you to explore geographic data in a visual format. The map below displays the results based on the geospatial data you have selected.</p>
+        
+        <!-- Adding usage instructions -->
+        <p><strong>How to Use:</strong> You can pan around the map, zoom in and out, and click on markers or regions to get more information. If you want to explore different geospatial data, return to the dashboard and select a new dataset.</p>
+
+        <!-- Embedding the map -->
+        <iframe src="{{ url_for('static', filename='maps/' + map_filename) }}" width="100%" height="600px" frameborder="0"></iframe>
+
+        <!-- Back to Dashboard Button -->
+        <div class="navigation-container">
+            <a href="/" class="back-button">Back to Dashboard</a>
+        </div>
+
+       
+        
+    </div>
+     <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Literary Insight Engine. All rights reserved.</p>
+    </footer>
+</body>
+</html>

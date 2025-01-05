@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIE_beta v1.10</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+   
+    
+</head>
+<body>
+    
+    
+    <div class="main-container">
+        <div id="authHeader" class="auth-header signed-out">
+            <button id="signInButton" class="auth-btn" onclick="showSignInCard()">Sign In</button>
+            <div class="auth-user-message">
+              <div id="userAvatar" class="auth-avatar"></div>
+              <span id="userName"></span>
+              <button class="auth-btn logout" onclick="handleLogout()">Logout</button>
+            </div>
+          </div>
+          
+          <div id="overlay" class="auth-overlay" onclick="hideSignInCard()"></div>
+          
+          <div id="signInCard" class="auth-card">
+            <h2 id="signInTitle" class="auth-title">Sign In</h2>
+            <form id="authForm">
+              <div id="nameField" class="auth-input-group" style="display: none;">
+                <label for="name">Name</label>
+                <input type="text" id="name" placeholder="Enter your name">
+              </div>
+              <div class="auth-input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="Enter your email" required>
+              </div>
+              <div class="auth-input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+              </div>
+              <div id="authError" class="auth-error"></div>
+              <div class="auth-button-group">
+                <button type="submit" id="submitButton" class="auth-btn">Sign In</button>
+                <button type="button" class="auth-btn logout" onclick="hideSignInCard()">Cancel</button>
+              </div>
+            </form>
+            <div style="margin-top: 1rem; text-align: center;">
+              <label id="toggleText" style="color: #2563eb; cursor: pointer;" onclick="toggleForm()">
+                Need an account? Register
+              </label>
+              <input type="checkbox" id="registerMode" style="display: none;">
+            </div>
+          </div>
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+        </div>
+        <!-- Left Column: Utilities Section -->
+        <div class="left-column">
+            <h1>Literary Insight Engine</h1>
+            <div style="text-align: center; color: red; font-weight: bold;">
+                <i>Note: This website is currently under development. Some features may not work as expected.</i>
+            </div>
+            <!-- Instructions Section -->
+            <h2>How to Use</h2>
+            <p>Welcome to the Literary Insight Engine! Here's how to get started:</p>
+            <ol>
+                <li><strong>Upload a Text File:</strong> Click on the "Upload" button to select a .txt file from your device.</li>
+                <li><strong>Select a Utility:</strong> Choose from the available utilities to analyze your text.</li>
+                <li><strong>View Results:</strong> After generating results, you will be redirected to a new page to view your analysis.</li>
+            </ol>
+            <!-- Upload Section -->
+            <h2>Upload Text File</h2>
+            <form id="uploadForm">
+                <input type="file" id="fileInput" accept=".txt" required>
+                <button type="button" class="utility-button" onclick="uploadFile()">Upload</button>
+            </form>
+            <div id="uploadedFileInfo">No file uploaded yet.</div>
+            <div id="daOne">
+            <div id="uploaded-files-section">
+                <h2>Uploaded Files</h2>
+                <ul id="uploaded-files-list">
+                    <!-- File items will be dynamically inserted here -->
+                </ul>
+            </div>
+        </div>
+            
+
+            <!-- Utilities Section -->
+            <h2>Select Utility</h2>
+            <div class="utility-container">
+                <!-- Word Cloud Utility -->
+                <div class="utility-card">
+                    <i class="fas fa-cloud" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Word Cloud</h2>
+                    <p>Create a visual representation of word frequency.</p>
+                    <button class="utility-button" id="wordCloudButton" onclick="generateWordCloud()" disabled>Generate Word Cloud</button>
+                </div>
+
+                <!-- Word Frequencies Utility -->
+                <div class="utility-card">
+                    <i class="fas fa-chart-bar" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Word Frequencies</h2>
+                    <p>View the frequency of each word in the text.</p>
+                    <button class="utility-button" id="wordFrequenciesButton" onclick="generateWordFrequencies()" disabled>Generate Word Frequencies</button>
+                </div>
+
+                <!-- Geospatial Visualization Utility -->
+                <div class="utility-card">
+                    <i class="fas fa-map-marked-alt" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Geospatial Visualization</h2>
+                    <p>Visualize location data on a map.</p><br>
+                    <button class="utility-button" id="geospatialButton" onclick="generateGeospatial()" disabled>Generate Geospatial Visualization</button>
+                </div>
+
+                <!-- Sentiment Analysis Utility -->
+                <div class="utility-card">
+                    <i class="fas fa-smile " style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Sentiment Analysis</h2>
+                    <p>Analyze the sentiment of the text.   
+                    </p><br>
+                    <button class="utility-button" id="sentimentButton" onclick="generateSentiment()" disabled>Analyze Sentiment</button>
+                </div>
+
+                <!-- Character Relationships Utility -->
+                <div class="utility-card" id="characterRelationshipsCard">
+                    <i class="fas fa-user-friends" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Character Relationships</h2>
+                    <p>Visualize relationships between characters in the text.</p><br>
+                    <button class="utility-button" id="characterRelationshipsButton" disabled>Generate Character Relationships</button>
+                </div>
+                <div class="utility-card" id="zipfCard">
+                    <i class="fas fa-chart-line" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Zipf's Law Analysis</h2>
+                    <p>Graph word frequencies versus their ranks.</p><br>
+                    <button class="utility-button" id="zipfButton" onclick="generateZipfAnalysis()">Generate Zipf's Law Analysis</button>
+                </div>
+                <div class="utility-card">
+                    <i class="fas fa-language" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Translate</h2>
+                    <p>Translate the uploaded text file to another language.</p>
+                    <button class="utility-button" id="translate-button" onclick="redirectToTranslationPage()">Generate Translation</button>
+                </div>
+                <div class="utility-card">
+                    <i class="fas fa-file-alt" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Research Paper Summarizer</h2>
+                    <p>Generate concise summaries of research papers.</p><br>
+                    <button class="utility-button" id="summarizeButton" onclick="summarizeResearchPaper()">Summarize Paper</button>
+                </div>
+                
+                <div class="utility-card">
+                    <i class="fas fa-quote-right" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Figurative Speech Analyzer</h2>
+                    <p>Analyze and extract figurative speech from the text.</p><br>
+                    <!-- Use a form for submission and trigger the POST request -->
+                    <form action="/figurative_speech" method="POST">
+                        <button class="utility-button">Analyze</button>
+                    </form>
+                </div>
+                
+                
+               
+                
+                
+                
+                
+            </div>
+            
+            
+            <!-- Chatbot Section -->
+            <div class="chat-section">
+                <h2>LitBot</h2>
+                <p>LitBot is an intelligent literacy chatbot designed to help users enhance their reading and writing skills. Available anytime, LitBot offers personalized learning experiences, from answering questions to providing vocabulary and grammar exercises. Whether you're starting out or looking to refine your skills, LitBot delivers real-time feedback and educational resources tailored to your needs, making literacy improvement fun and accessible for everyone.</p>
+                <div class="chat-container">
+                    <div id="chat-messages"></div>
+                    <div class="chat-input">
+                        <input type="text" id="user-input" placeholder="Ask about literature...">
+                        <button onclick="sendMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+       
+    </div>
+  
+    <!-- JavaScript Code -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let uploadedFileName = '';
+
+        window.onload = function() {
+            const storedFileName = localStorage.getItem('uploadedFileName');
+            if (storedFileName) {
+                uploadedFileName = storedFileName;
+                document.getElementById('uploadedFileInfo').textContent = `Uploaded file: ${uploadedFileName}`;
+                enableUtilityButtons();
+            }
+        }
+
+        function uploadFile() {
+   const fileInput = document.getElementById('fileInput');
+   const file = fileInput.files[0];
+   if (file) {
+       const formData = new FormData();
+       formData.append('file', file);
+       fetch('/upload', {
+           method: 'POST',
+           body: formData
+       })
+       .then(response => response.json())
+       .then(data => {
+           if (data.filename) {
+               uploadedFileName = data.filename;
+               localStorage.setItem('uploadedFileName', uploadedFileName);
+               // Refresh page after successful upload
+               window.location.reload();
+           } else {
+               alert('Upload failed: ' + data.error);
+           }
+       })
+       .catch(error => console.error('Error:', error));
+   } else {
+       alert('Please select a file to upload.');
+   }
+}
+
+        function enableUtilityButtons() {
+            document.getElementById('wordCloudButton').disabled = false;
+            document.getElementById('wordFrequenciesButton').disabled = false;
+            document.getElementById('geospatialButton').disabled = false;
+            document.getElementById('sentimentButton').disabled = false;
+            document.getElementById('characterRelationshipsButton').disabled = false;
+            document.getElementById('zipfButton').disabled = false;
+            document.getElementById('translate-button').disabled = false;
+            document.getElementById('summarizeButton').disabled = false;
+            document.getElementById('analyzeFigurativeButton').disabled = false;
+            
+        }
+
+        function sendMessage() {
+            var userInput = $('#user-input').val();
+            if (userInput.trim() === '') return;
+
+            // Display user message
+            $('#chat-messages').append('<p><strong>You:</strong> ' + userInput + '</p>');
+            $('#user-input').val('');
+
+            // Send request to server
+            $.ajax({
+                url: '/chat',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ message: userInput }),
+                success: function(response) {
+                    // Display bot response
+                    $('#chat-messages').append('<p><strong>LitBot:</strong> ' + response.response + '</p>');
+                },
+                error: function() {
+                    $('#chat-messages').append('<p><strong>Error:</strong> Failed to get response</p>');
+                }
+            });
+        }
+
+        $('#user-input').keypress(function(e) {
+            if (e.which == 13) {
+                sendMessage();
+                return false;
+            }
+        });
+
+        function generateWordCloud() {
+            fetch('/generate_wordcloud', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.image_filename) {
+                        window.location.href = `/result/word_cloud?image_filename=${data.image_filename}`;
+                    } else {
+                        alert('Word cloud generation failed: ' + data.error);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function generateWordFrequencies() {
+            fetch('/generate_word_frequencies', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    window.location.href = `/result/word_frequencies?word_frequencies=${encodeURIComponent(JSON.stringify(data))}`;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        function generateZipfAnalysis() {
+    fetch('/generate_zipf', { method: 'POST' })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${text}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Server response:', data);
+            if (data.message === 'Zipf analysis completed') {
+                window.location.href = '/result/zipf';
+            } else {
+                throw new Error('Unexpected response from server: ' + JSON.stringify(data));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Zipf\'s Law analysis generation failed: ' + error.message);
+        });
+}
+
+
+
+        function generateGeospatial() {
+            fetch('/generate_geospatial', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.map_filename) {
+                        window.location.href = `/result/geospatial?map_filename=${data.map_filename}`;
+                    } else {
+                        alert('Geospatial visualization failed: ' + data.error);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+       
+       
+
+
+        function generateSentiment() {
+            fetch('/generate_sentiment', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    window.location.href = `/result/sentiment?sentiment_score=${data.sentiment_score}&sentiment_description=${data.sentiment_description}`;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        function generateCharacterRelationships() {
+    fetch('/generate_character_relationships', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else if (data.plot_filename) {
+            window.location.href = '/result/character_relationships?plot_filename=' + data.plot_filename;
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        alert('An error occurred while generating character relationships.');
+    });
+}
+
+
+
+function summarizeResearchPaper() {
+    // Redirect to the result_research page
+    window.location.href = '/result_research';
+}
+
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    const characterRelationshipsButton = document.getElementById('characterRelationshipsButton');
+    if (characterRelationshipsButton) {
+        characterRelationshipsButton.addEventListener('click', generateCharacterRelationships);
+    }
+});
+window.addEventListener('load', function() {
+  const pageContent = document.querySelector('.content');
+  
+  // Apply the enter animation when the page loads
+  pageContent.classList.add('page-enter');
+
+  // Detect when the user clicks on a link to navigate away
+  document.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', function(event) {
+      event.preventDefault();
+      const href = this.getAttribute('href');
+
+      // Apply the page turn animation
+      pageContent.classList.add('page-turn');
+
+      // Wait for the animation to complete, then navigate
+      setTimeout(() => {
+        window.location.href = href;
+      }, 1000); // Match the duration of the animation (1 second)
+    });
+  });
+});
+
+function redirectToTranslationPage() {
+    fetch('/check_uploaded_file', {
+        method: 'GET',
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.file_uploaded) {
+            // Redirect to the results translation page where language can be selected
+            window.location.href = '/result/translation';
+        } else {
+            // Show an error if no file has been uploaded
+            alert('Please upload a file before generating a translation.');
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        alert('An error occurred while checking the uploaded file.');
+    });
+}
+
+
+    </script>
+   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import {
+        getAuth,
+        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
+        onAuthStateChanged,
+        signOut,
+        updateProfile
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    
+    const firebaseConfig = {
+        apiKey: "AIzaSyCtJ0Ka6KkRqkylNfnO8luljP_msK_xVg8",
+        authDomain: "literary-insight-engine-870d1.firebaseapp.com",
+        projectId: "literary-insight-engine-870d1",
+        storageBucket: "literary-insight-engine-870d1.firebasestorage.app",
+        messagingSenderId: "480826919459",
+        appId: "1:480826919459:web:d24ce24c3cb72e7dcebf96"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const database = getDatabase(app);
+
+    // Make functions globally accessible
+    window.fetchUploadedFiles = async function() {
+    try {
+        const response = await fetch('http://127.0.0.1:5000/get_uploaded_files');
+        if (response.ok) {
+            const data = await response.json();
+            const filesList = document.getElementById('uploaded-files-list');
+            filesList.innerHTML = ""; // Clear existing list
+
+            // Append each file to the list
+            data.files.forEach(file => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${file.filename} (${(file.size / 1024).toFixed(2)} KB)`;
+                listItem.setAttribute('data-id', file.id);
+
+                // Add re-upload button
+                const reuploadButton = document.createElement('button');
+                reuploadButton.textContent = "Re-upload";
+                reuploadButton.onclick = () => window.reuploadFile(file.filename);
+                listItem.appendChild(reuploadButton);
+
+                // Add delete button
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = "Delete";
+                deleteButton.style.marginLeft = '10px';
+                deleteButton.onclick = () => window.deleteFile(file.filename);
+                listItem.appendChild(deleteButton);
+
+                filesList.appendChild(listItem);
+            });
+        } else {
+            console.error('Failed to fetch uploaded files');
+        }
+    } catch (error) {
+        console.error('Error fetching files:', error);
+    }
+};
+
+// Add the deleteFile function
+window.deleteFile = async function(filename) {
+    if (!confirm(`Are you sure you want to delete ${filename}?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch('http://127.0.0.1:5000/delete_file', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ filename }),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert(result.message);
+            window.fetchUploadedFiles(); // Refresh the file list
+        } else {
+            alert(result.error || 'Failed to delete the file');
+        }
+    } catch (error) {
+        console.error('Error deleting file:', error);
+    }
+};
+
+    window.reuploadFile = async function(filename) {
+        try {
+            const response = await fetch('/reupload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: filename })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert('File re-uploaded successfully!');
+            } else {
+                alert(`Error re-uploading file: ${data.error}`);
+            }
+        } catch (error) {
+            console.error('Error re-uploading file:', error);
+        }
+    };
+
+    // Helper function to update UI based on user state
+    function updateUserInterface(user) {
+        const header = document.getElementById('authHeader');
+        if (user) {
+            const displayName = user.displayName || user.email.split('@')[0];
+            document.getElementById('userAvatar').textContent = displayName[0].toUpperCase();
+            document.getElementById('userName').textContent = displayName;
+            header.classList.remove('signed-out');
+            header.classList.add('signed-in');
+        } else {
+            header.classList.remove('signed-in');
+            header.classList.add('signed-out');
+        }
+    }
+
+    
+
+    // Error message mapper
+    function getErrorMessage(errorCode) {
+        const errorMessages = {
+            'auth/email-already-in-use': 'This email is already registered. Please sign in.',
+            'auth/weak-password': 'Password should be at least 6 characters long.',
+            'auth/invalid-email': 'Please enter a valid email address.',
+            'auth/user-not-found': 'No account found with this email.',
+            'auth/wrong-password': 'Incorrect password.',
+            'default': 'An error occurred. Please try again.'
+        };
+        return errorMessages[errorCode] || errorMessages.default;
+    }
+
+    // Form submission handler
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitButton = document.getElementById('submitButton');
+        const errorElement = document.getElementById('authError');
+        
+        submitButton.classList.add('loading');
+        errorElement.style.display = 'none';
+
+        try {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const name = document.getElementById('name')?.value.trim();
+            const isRegistering = document.getElementById('registerMode').checked;
+
+            if (isRegistering) {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(userCredential.user, {
+                    displayName: name || email.split('@')[0]
+                });
+                updateUserInterface(auth.currentUser);
+            } else {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                updateUserInterface(userCredential.user);
+            }
+            hideSignInCard();
+        } catch (error) {
+            errorElement.textContent = getErrorMessage(error.code);
+            errorElement.style.display = 'block';
+        } finally {
+            submitButton.classList.remove('loading');
+        }
+    });
+
+    // Auth state observer
+    onAuthStateChanged(auth, (user) => {
+        updateUserInterface(user);
+    });
+
+    // Global functions
+    window.showSignInCard = () => {
+        document.getElementById('signInCard').style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('authForm').reset();
+        document.getElementById('authError').style.display = 'none';
+    };
+
+    window.hideSignInCard = () => {
+        document.getElementById('signInCard').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('authForm').reset();
+        document.getElementById('authError').style.display = 'none';
+    };
+
+    window.toggleForm = () => {
+        const isRegistering = document.getElementById('registerMode').checked;
+        const newIsRegistering = !isRegistering;
+        
+        document.getElementById('registerMode').checked = newIsRegistering;
+        document.getElementById('signInTitle').textContent = newIsRegistering ? 'Register' : 'Sign In';
+        document.getElementById('submitButton').textContent = newIsRegistering ? 'Register' : 'Sign In';
+        document.getElementById('toggleText').textContent = newIsRegistering ? 
+            'Already have an account? Sign In' : 'Need an account? Register';
+        document.getElementById('nameField').style.display = newIsRegistering ? 'block' : 'none';
+        document.getElementById('authError').style.display = 'none';
+        document.getElementById('authForm').reset();
+    };
+
+    window.handleLogout = async () => {
+        try {
+            await signOut(auth);
+            updateUserInterface(null);
+        } catch (error) {
+            console.error('Logout error:', error);
+            const errorElement = document.getElementById('authError');
+            errorElement.textContent = 'Failed to sign out. Please try again.';
+            errorElement.style.display = 'block';
+        }
+    };
+    document.addEventListener('DOMContentLoaded', fetchUploadedFiles);
+
+   
+</script>
+
+
+     <footer>
+        <p>&copy; 2024 Literary Insight Engine. All rights reserved.</p>
+    </footer>
+</body>
+</html>

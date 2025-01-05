@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Figurative Speech Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Figurative Speech Analysis</h1>
+
+        <!-- Adding description -->
+        <p>Welcome to the Figurative Speech Analysis tool. This page displays the results of analyzing the figurative speech in the uploaded text. Below, you can explore the different types of figurative language detected in the content: Similes, Metaphors, and Personifications.</p>
+        
+        <!-- Adding usage instructions -->
+        <p><strong>How to Use:</strong> You can view the detected figurative speech types below. Each type is categorized and displayed separately. If you would like to analyze a new text, return to the dashboard and upload a new file.</p>
+
+        <!-- Similes Section -->
+        <h2>Similes</h2>
+        {% if figurative_speech['similes'] %}
+            <ul>
+                {% for sentence in figurative_speech['similes'] %}
+                    <li>{{ sentence }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No similes detected.</p>
+        {% endif %}
+
+        <!-- Metaphors Section -->
+        <h2>Metaphors</h2>
+        {% if figurative_speech['metaphors'] %}
+            <ul>
+                {% for sentence in figurative_speech['metaphors'] %}
+                    <li>{{ sentence }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No metaphors detected.</p>
+        {% endif %}
+
+        <!-- Personifications Section -->
+        <h2>Personifications</h2>
+        {% if figurative_speech['personifications'] %}
+            <ul>
+                {% for sentence in figurative_speech['personifications'] %}
+                    <li>{{ sentence }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No personifications detected.</p>
+        {% endif %}
+
+        <!-- Back to Dashboard Button -->
+        <div class="navigation-container">
+            <a href="/" class="back-button">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Literary Insight Engine. All rights reserved.</p>
+    </footer>
+</body>
+</html>

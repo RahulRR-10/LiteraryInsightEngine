@@ -30,7 +30,8 @@ import random
 import openai
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
-
+import firebase_admin
+from firebase_admin import credentials, db
 from azure.core.exceptions import AzureError
 import time
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -56,13 +57,19 @@ from textblob import TextBlob
 from collections import defaultdict
 import joblib
 import string
-
+from datetime import datetime
+import time
 
 
 model = joblib.load('models/figurative_speech_model.pkl')
 
 
 app = Flask(__name__)
+
+cred = credentials.Certificate('literary-insight-engine-870d1-firebase-adminsdk-b0wfn-97346c9f8d.json')
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://literary-insight-engine-870d1-default-rtdb.firebaseio.com/'
+})
 
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # Allow cookies to be sent in third-party contexts
 app.config['SESSION_COOKIE_SECURE'] = True  # Use secure cookies if your app is served over HTTPS
@@ -324,19 +331,80 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    session.clear()  # Clear session for new file upload
+
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
 
     file = request.files['file']
-    if file and allowed_file(file.filename):
+    if file and allowed_file(file.filename):  # Validate file type
         filename = file.filename
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        session['uploaded_file'] = filename
+        file.save(filepath)  # Save file to the server
+        session['uploaded_file'] = filename  # Store filename in session
+
+        # Firebase: Save file metadata
+        file_metadata = {
+            "filename": filename,
+            "size": os.path.getsize(filepath),  # File size in bytes
+            "upload_date": time.time()  # Server-side timestamp in seconds since epoch
+        }
+
+        # Debugging output
+        print("File Metadata:", file_metadata)
+
+        try:
+            ref = db.reference('uploaded_files')
+            ref.push(file_metadata)  # Push metadata to Firebase
+        except Exception as e:
+            print(f"Firebase Error: {e}")
+            return jsonify({'error': 'Firebase upload failed', 'details': str(e)}), 500
+
         return jsonify({'message': 'File uploaded successfully', 'filename': filename}), 200
     else:
         return jsonify({'error': 'Invalid file type'}), 400
-    
+
+@app.route('/reupload', methods=['POST'])
+def reupload_file():
+    data = request.get_json()
+    filename = data.get('filename')
+
+    if not filename:
+        return jsonify({'error': 'Filename not provided'}), 400
+
+    # Check if the file exists in Firebase
+    ref = db.reference('uploaded_files')
+    files = ref.get()
+    if files:
+        for key, value in files.items():
+            if value.get('filename') == filename:
+                session['uploaded_file'] = filename  # Set session for the re-uploaded file
+                return jsonify({'message': 'File re-uploaded successfully'}), 200
+    return jsonify({'error': 'File not found in Firebase'}), 404
+
+
+@app.route('/delete_file', methods=['POST'])
+def delete_file():
+    try:
+        data = request.get_json()
+        filename = data.get('filename')
+        if not filename:
+            return jsonify({'error': 'Filename is required'}), 400
+
+        # Retrieve files from Firebase database
+        files_ref = db.reference('/uploaded_files')
+        files = files_ref.get() or {}
+
+        # Find and delete the file from Firebase
+        for key, file_info in files.items():
+            if file_info.get('filename') == filename:
+                files_ref.child(key).delete()
+                return jsonify({'message': f'File {filename} deleted successfully'}), 200
+
+        return jsonify({'error': 'File not found'}), 404
+    except Exception as e:
+        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -437,6 +505,33 @@ def analyze_figurative_speech(text):
             categorized_figurative_speech["personifications"].append(sentence)
 
     return categorized_figurative_speech
+
+@app.route('/store-in-session', methods=['POST'])
+def store_in_session():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['file']
+    if file and allowed_file(file.filename):
+        filename = file.filename
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        # Save the uploaded filename to the session
+        session['uploaded_file'] = filename
+        return jsonify({'message': 'File stored in session successfully', 'filename': filename}), 200
+    else:
+        return jsonify({'error': 'Invalid file type'}), 400
+
+@app.route('/check_file_source', methods=['GET'])
+def check_file_source():
+    filename = session.get('uploaded_file')
+    if filename:
+        return jsonify({'message': 'File exists in session', 'filename': filename}), 200
+    else:
+        return jsonify({'error': 'No file in session'}), 404
+
+
 
 @app.route('/figurative_speech', methods=['POST'])
 def figurative_speech():
@@ -545,6 +640,23 @@ def generate_zipf_analysis():
         return jsonify({'error': error_message}), 500
     
 
+@app.route('/get_uploaded_files', methods=['GET'])
+def get_uploaded_files():
+    try:
+        ref = db.reference('uploaded_files')
+        files = ref.get()  # Retrieve all files from Firebase
+        if files:
+            # Convert the dictionary to a list of file metadata
+            file_list = [{"id": key, **value} for key, value in files.items()]
+        else:
+            file_list = []  # No files found
+        return jsonify({'files': file_list}), 200
+    except Exception as e:
+        print(f"Firebase Error: {e}")
+        return jsonify({'error': 'Failed to fetch files', 'details': str(e)}), 500
+
+    
+
 @app.route('/generate_geospatial', methods=['POST'])
 def generate_geospatial():
     """
@@ -589,6 +701,49 @@ def check_uploaded_file():
     else:
         return jsonify({'file_uploaded': False})
 
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+def get_sentiment_from_gpt3(text: str) -> str:
+    """
+    Analyze text sentiment using Azure OpenAI with retry logic and error handling.
+    
+    Args:
+        text (str): The text to analyze
+        
+    Returns:
+        str: Sentiment description or error message
+        
+    Raises:
+        Exception: If all retry attempts fail
+    """
+    try:
+        # Truncate text if too long to avoid token limits
+        max_chars = 1000
+        truncated_text = text[:max_chars] + ('...' if len(text) > max_chars else '')
+
+        response = openai.ChatCompletion.create(
+            engine=AZURE_OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a sentiment analysis expert. Provide brief, clear sentiment descriptions."},
+                {"role": "user", "content": f"Analyze the sentiment of this text in 50 words or less:\n{truncated_text}"}
+            ],
+            max_tokens=100,
+            temperature=0.7,
+            n=1
+        )
+        
+        sentiment_description = response.choices[0].message['content'].strip()
+        return sentiment_description or "No sentiment analysis available"
+
+    except openai.error.InvalidRequestError as e:
+        logger.error(f"Invalid request to OpenAI API: {str(e)}")
+        return "Error: Invalid request format"
+    except openai.error.RateLimitError:
+        logger.error("OpenAI API rate limit exceeded")
+        return "Error: Rate limit exceeded"
+    except Exception as e:
+        logger.error(f"Unexpected error analyzing sentiment: {str(e)}")
+        return "Error: Unable to analyze sentiment"
+
 @app.route('/generate_sentiment', methods=['POST'])
 def generate_sentiment():
     try:
@@ -607,26 +762,21 @@ def generate_sentiment():
         if not text:
             return jsonify({'error': 'File is empty'}), 400
 
-        # Generate sentiment score and description
+        # Sentiment analysis with TextBlob
         analysis = TextBlob(text)
         sentiment_score = analysis.sentiment.polarity  # Score between -1 (negative) and 1 (positive)
-        
-        # Determine sentiment description
-        if sentiment_score > 0:
-            sentiment_description = "Positive"
-        elif sentiment_score < 0:
-            sentiment_description = "Negative"
-        else:
-            sentiment_description = "Neutral"
 
+        # Determine sentiment description using GPT-3
+        sentiment_description = get_sentiment_from_gpt3(text)
+        
         return jsonify({
             'sentiment_score': sentiment_score,
             'sentiment_description': sentiment_description
         })
     except Exception as e:
         logger.error(f"Error in generate_sentiment: {str(e)}")
-        return jsonify({'error': str(e)}), 500  # Return a server error response
-    
+        return jsonify({'error': str(e)}), 500
+
 
 
 nlp = spacy.load("en_core_web_sm")
@@ -768,16 +918,13 @@ def geospatial_result():
 
 
 
-@app.route('/result/sentiment')
+@app.route('/result/sentiment', methods=['GET'])
 def sentiment_result():
     sentiment_score = request.args.get('sentiment_score')
     sentiment_description = request.args.get('sentiment_description')
 
-    if sentiment_score is None or sentiment_description is None:
-        return "Missing sentiment data", 400
-
-    return render_template('result_sentiment.html', 
-                           sentiment_score=sentiment_score, 
+    return render_template('result_sentiment.html',
+                           sentiment_score=sentiment_score,
                            sentiment_description=sentiment_description)
 
 
