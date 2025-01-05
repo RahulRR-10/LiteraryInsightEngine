@@ -55,7 +55,7 @@ h2 {
   padding-left: 15px;
 }
 
-form {
+.uploadForm{
   background: rgba(255, 248, 231, 0.7);
   padding: 25px;
   margin-bottom: 30px;
@@ -248,4 +248,4 @@ input[type="file"]:hover {
 .logo-container img {
   width: 50px; /* Adjust the size of the logo */
   height: auto;
-}
+} 

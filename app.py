@@ -30,6 +30,11 @@ import random
 import openai
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
+
+from azure.core.exceptions import AzureError
+import time
+from tenacity import retry, stop_after_attempt, wait_exponential
+from typing import Dict, List
 import json
 import networkx as nx
 import plotly.graph_objects as go
@@ -264,7 +269,7 @@ def extract_locations(text):
 
 def geocode_place(place, max_retries=3):
     """
-    Geocodes a place name using the Google Maps Geocoding API.
+    Geocodes a place name using the Google Maps Geocoding API ---- remember to deactivate card
     """
     if place in geocode_cache:
         return geocode_cache[place]
@@ -296,7 +301,7 @@ def geocode_place(place, max_retries=3):
 
 def generate_map(locations, filename):
     """
-    Generates a folium map with markers for each location.
+    Generates a folium map with markers for each location --- chk the accuracy
     """
     m = folium.Map(location=[20, 0], zoom_start=2)
     
@@ -387,6 +392,8 @@ def translate():
         'translated_filename': translated_filename,
         'translated_text': translated_text
     }), 200
+
+
 
 
 def preprocess_text(text):

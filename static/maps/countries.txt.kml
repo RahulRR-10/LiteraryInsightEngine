@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+    <Document id="1">
+        <Placemark id="3">
+            <name>Argentina</name>
+            <Point id="2">
+                <coordinates>-63.61667199999999,-38.416097,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="5">
+            <name>Canada</name>
+            <Point id="4">
+                <coordinates>-106.346771,56.130366,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="7">
+            <name>Brazil</name>
+            <Point id="6">
+                <coordinates>-51.92528,-14.235004,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="9">
+            <name>Italy</name>
+            <Point id="8">
+                <coordinates>12.56738,41.87194,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="11">
+            <name>Kenya</name>
+            <Point id="10">
+                <coordinates>37.906193,-0.023559,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="13">
+            <name>Turkey</name>
+            <Point id="12">
+                <coordinates>35.243322,38.963745,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="15">
+            <name>Mexico</name>
+            <Point id="14">
+                <coordinates>-102.552784,23.634501,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="17">
+            <name>Portugal</name>
+            <Point id="16">
+                <coordinates>-8.224454,39.39987199999999,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="19">
+            <name>Australia</name>
+            <Point id="18">
+                <coordinates>133.775136,-25.274398,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="21">
+            <name>Norway</name>
+            <Point id="20">
+                <coordinates>8.468945999999999,60.47202399999999,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="23">
+            <name>Indonesia</name>
+            <Point id="22">
+                <coordinates>113.921327,-0.789275,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="25">
+            <name>Thailand</name>
+            <Point id="24">
+                <coordinates>100.992541,15.870032,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="27">
+            <name>Egypt</name>
+            <Point id="26">
+                <coordinates>30.802498,26.820553,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="29">
+            <name>India</name>
+            <Point id="28">
+                <coordinates>78.96288,20.593684,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="31">
+            <name>Chile</name>
+            <Point id="30">
+                <coordinates>-71.542969,-35.675147,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="33">
+            <name>New Zealand</name>
+            <Point id="32">
+                <coordinates>174.885971,-40.900557,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="35">
+            <name>Sweden</name>
+            <Point id="34">
+                <coordinates>18.643501,60.12816100000001,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="37">
+            <name>Japan</name>
+            <Point id="36">
+                <coordinates>138.252924,36.204824,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="39">
+            <name>South Africa</name>
+            <Point id="38">
+                <coordinates>22.937506,-30.559482,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="41">
+            <name>Greece</name>
+            <Point id="40">
+                <coordinates>21.824312,39.074208,0.0</coordinates>
+            </Point>
+        </Placemark>
+    </Document>
+</kml>

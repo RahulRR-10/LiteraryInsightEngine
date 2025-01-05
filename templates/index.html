@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LIE_beta</title>
+    <title>LIE_beta v1.10</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -67,8 +67,7 @@
                 <div class="utility-card">
                     <i class="fas fa-smile " style="font-size: 48px; color: #8b4513;"></i>
                     <h2>Sentiment Analysis</h2>
-                    <p>Analyze the sentiment of the text.
-                        
+                    <p>Analyze the sentiment of the text.   
                     </p><br>
                     <button class="utility-button" id="sentimentButton" onclick="generateSentiment()" disabled>Analyze Sentiment</button>
                 </div>
@@ -98,6 +97,20 @@
                     <p>Generate concise summaries of research papers.</p><br>
                     <button class="utility-button" id="summarizeButton" onclick="summarizeResearchPaper()">Summarize Paper</button>
                 </div>
+                
+                <div class="utility-card">
+                    <i class="fas fa-quote-right" style="font-size: 48px; color: #8b4513;"></i>
+                    <h2>Figurative Speech Analyzer</h2>
+                    <p>Analyze and extract figurative speech from the text.</p><br>
+                    <!-- Use a form for submission and trigger the POST request -->
+                    <form action="/figurative_speech" method="POST">
+                        <button class="utility-button">Analyze</button>
+                    </form>
+                </div>
+                
+                
+               
+                
                 
                 
                 
@@ -172,6 +185,8 @@
             document.getElementById('zipfButton').disabled = false;
             document.getElementById('translate-button').disabled = false;
             document.getElementById('summarizeButton').disabled = false;
+            document.getElementById('analyzeFigurativeButton').disabled = false;
+            
         }
 
         function sendMessage() {
@@ -264,6 +279,9 @@
                 })
                 .catch(error => console.error('Error:', error));
         }
+       
+       
+
 
         function generateSentiment() {
             fetch('/generate_sentiment', { method: 'POST' })
@@ -293,10 +311,15 @@
         alert('An error occurred while generating character relationships.');
     });
 }
+
+
+
 function summarizeResearchPaper() {
     // Redirect to the result_research page
     window.location.href = '/result_research';
 }
+
+
 document.addEventListener('DOMContentLoaded', (event) => {
     const characterRelationshipsButton = document.getElementById('characterRelationshipsButton');
     if (characterRelationshipsButton) {

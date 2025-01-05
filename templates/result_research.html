@@ -18,7 +18,7 @@
                        placeholder="https://example.com/research-paper" class="form-select">
                 <button type="submit" id="submitButton" class="utility-button">Generate Summary</button>
             </form>
-            <div id="loadingText" class="loading">Generating summary, please wait...</div>
+            <div id="loadingText" class="loading" style="display: none;">Generating summary, please wait...</div>
             <div id="errorMessage" class="error"></div>
         </div>
 
@@ -54,7 +54,6 @@
             <a href="{{ url_for('index') }}" class="back-button">Back to Dashboard</a>
         </div>
     </div>
-
     <script>
         document.getElementById('summaryForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -69,26 +68,26 @@
             // Reset state
             errorMessage.textContent = '';
             summaryResult.style.display = 'none';
-            
-            // Show loading state
+            loadingText.style.display = 'block'; // Show loading text
+    
+            // Disable the submit button
             submitButton.disabled = true;
-            loadingText.style.display = 'block';
-
+    
             try {
                 const formData = new FormData();
                 formData.append('url', document.getElementById('url').value);
-
+    
                 const response = await fetch('/summarize_paper', {
                     method: 'POST',
                     body: formData
                 });
-
+    
                 const data = await response.json();
-
+    
                 if (response.ok) {
                     summaryText.textContent = data.summary;
                     summaryResult.style.display = 'block';
-                    
+    
                     // Set up download button
                     downloadButton.onclick = () => {
                         window.location.href = `/download_summary/${data.filename}`;
@@ -99,11 +98,13 @@
             } catch (error) {
                 errorMessage.textContent = error.message;
             } finally {
-                submitButton.disabled = false;
+                // Hide loading text and enable submit button
                 loadingText.style.display = 'none';
+                submitButton.disabled = false;
             }
         });
     </script>
+    
 
     <footer>
         <p>&copy; 2024 Literary Insight Engine. All rights reserved.</p>

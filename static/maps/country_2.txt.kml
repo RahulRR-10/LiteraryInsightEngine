@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+    <Document id="1">
+        <Placemark id="3">
+            <name>Cairo</name>
+            <Point id="2">
+                <coordinates>31.2357116,30.0444196,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="5">
+            <name>Corcovado Mountain</name>
+            <Point id="4">
+                <coordinates>-43.2114467,-22.952352,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="7">
+            <name>the Arashiyama Bamboo Grove</name>
+            <Point id="6">
+                <coordinates>135.6713013,35.0168187,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="9">
+            <name>Montmartre</name>
+            <Point id="8">
+                <coordinates>2.3430895,48.8861929,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="11">
+            <name>the Aegean Sea</name>
+            <Point id="10">
+                <coordinates>25.268555,39.019184,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="13">
+            <name>Rio de Janeiro</name>
+            <Point id="12">
+                <coordinates>-43.1728965,-22.9068467,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="15">
+            <name>Paris</name>
+            <Point id="14">
+                <coordinates>2.3513765,48.8575475,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="17">
+            <name>Kyoto</name>
+            <Point id="16">
+                <coordinates>135.7681489,35.011564,0.0</coordinates>
+            </Point>
+        </Placemark>
+    </Document>
+</kml>

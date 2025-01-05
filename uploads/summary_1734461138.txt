@@ -1,0 +1,7 @@
+The objective of this research paper is to study the local kinematics of K and M giants in order to revisit the concept of superclusters. The research questions include exploring the kinematics and dynamics of these stars, with a focus on their distances, radial velocities, and proper motions in the galactic plane. 
+
+The key methodology used to achieve these objectives involved analyzing data obtained from the CORAVEL, Hipparcos and Tycho-2 catalogues. This included measuring the radial velocities, distances, and proper motions of K and M giant stars within a defined region of the galaxy. The data analysis also involved applying statistical techniques such as clustering and principal component analysis to identify groups of stars with similar kinematic properties.
+
+The principal findings from the analysis revealed the presence of multiple kinematic structures in the solar neighbourhood, including previously identified superclusters as well as new structures. The findings also highlight the complex nature of the galactic disc, with various structures exhibiting different kinematic properties. 
+
+The major conclusion drawn from this research is that the concept of superclusters needs to be revisited, as it may not be a complete representation of the kinematic structures in the local galaxy. Further research is required to understand the nature and formation of these kinematic structures, as they have important implications for our understanding of the dynamics of the Milky Way galaxy.
