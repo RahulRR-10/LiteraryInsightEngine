@@ -81,6 +81,9 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_GEOCODING_API_KEY")
 
 
 
+
+
+
 openai.api_type = "azure"
 openai.api_base = AZURE_OPENAI_ENDPOINT
 openai.api_version = "2024-05-01-preview"  # Update this to the latest API version
